@@ -1,0 +1,67 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-size: 13px;
+  font-family: "Helvetica Neue";
+}
+
+header {
+  width: 100%;
+  height: 50px;
+  background: #ddd;
+  display: flex;
+  flex-direction: row;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+button {
+  background: #f5f5f5;
+  border: solid 1px #ccc;
+  padding: 4px;
+}
+
+
+/* Backdrop for showing modals */
+.backdrop {
+  top:        0;
+  left:       0;
+  right:      0;
+  bottom:     0;
+  z-index:    5;
+  display:    none;
+  opacity:    .75;
+  position:   fixed;
+  background: #fff;
+  background: -webkit-gradient(radial, center center, 0, center center, 460, from(#fff), to(#ccc));
+  background: -webkit-radial-gradient(circle, #fff, #ccc);
+  background: -moz-radial-gradient(circle, #fff, #ccc);
+  background: -ms-radial-gradient(circle, #fff, #ccc);
+}
+
+.popup {
+  position: absolute;
+  visibility: hidden;
+  padding: 10px;
+  background-color: white;
+  border: solid 1px #ddd;
+}
+
+.popup.shown {
+  visibility: visible;
+}
+
+
+.palette-item {
+  border: solid 1px #ddd;
+  padding: 10px;
+  text-align: center;
+  width: 150px;
+  cursor: pointer;
+}
+.palette-item > div {
+  font-size: 40px;
+}

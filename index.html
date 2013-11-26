@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html class="no-js">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Eye Gee</title>
+    <meta name="description" content="Google Replacement">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Place favicon.ico and apple-touch-icon(s) in the root directory -->
+
+    <link rel="stylesheet" href="/static/main/css/styles.css">
+    <link rel="stylesheet" href="/static/main/css/ionicons.css">
+    <script type="text/javascript" charset="utf-8" src="/static/main/js/loader.js"></script>
+  </head>
+  <body>    
+    <!-- Popup for user login/registraion. Not visible by default. -->
+    <div id="login-window" class="popup">
+      <label for="email">Email</label>
+      <input type="email" name="email" value="" id="email">
+      
+      <label for="password">Password</label>
+      <input type="password" name="password" value="" id="password">
+
+      <button type="button" control data-module="main" data-method="doSignIn">OK</button>
+    </div>
+
+    <!-- Popup for widget management. Not visible by default. -->
+    <div id="add-widget-window" class="popup">
+    </div>
+
+    <!-- Page content starts here -->
+    <header>
+      <form class='section search'>
+        <input type="text" name="search" value="" placeholder="Search with Google">
+        <button type="submit">Go</button>
+      </form>
+
+      <section class='section dashboard'>
+        <button type="button" control data-module="main" data-method="openWidgetPalette">Add Widget</button>
+        <button type="button" control data-module="main" data-method="signIn">
+          <% if(user.email) { %>
+            Sign out
+          <% } else { %>
+            Sign in / Register 
+          <% } %>
+        </button>
+      </section>
+    </header>
+
+    <main>
+    <main>
+    
+    <footer>
+    </footer>
+
+    <script type="text/javascript" charset="utf-8">
+    // This is the list of available modules on the website
+    var MODULES = <%= modules %>;
+
+    // This is the user information object. 
+    // It contains the modules used by the user and their configuration
+    var USER = <%= user %>;
+
+    // lib.js contains jquery, underscore and backbone
+    require(['/static/main/js/lib.js', '/static/main/js/main.js'], function(){ 
+      init();
+    });
+    </script>
+  </body>
+</html>
