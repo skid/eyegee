@@ -14,10 +14,6 @@ var _       = require('underscore');
 global.db      = redis.createClient();
 global.modules = { rss: require('./rss') }
 
-// The template and default context
-var ctx     = { modules: JSON.stringify(_.keys(modules)) }
-var tmpl    = _.template(fs.readFileSync('index.html').toString('utf-8'));
-
 // Each module has its own Connect server for  handling module-specific requests.
 var moduleProxy = connect();
 moduleProxy.use('/rss', modules.rss.app);
@@ -75,6 +71,13 @@ app.use('/', function(req, res, next){
   });
 });
 
+// This layer will respond to requests to /state.js and send a javascript file
+// that will set global variables which describe the application state
+app.use('/state.js', function(req, res, next){
+  res.writeHead(200, "OK", { "Content-Type": "application/javascript" });
+  res.end("MODULES=" + JSON.stringify(_.keys(modules)) + ";USER=" + JSON.stringify(req.user) + ";" );
+});
+
 // Proxy to modules
 app.use('/module', moduleProxy);
 
@@ -106,6 +109,10 @@ app.use('/', function(req, res, next){
     res.writeHead(200, "OK");
     res.end(res.body);
   }
+  else if(_.isObject(res.body) && res.body.status === 'error'){
+    res.writeHead(res.body.statusCode || 500, res.body.message || "Server Error");
+    res.end();
+  }
   else if(_.isObject(res.body) || _.isArray(res.body)){
     res.writeHead(200, "OK", { 'Content-Type': 'applicaiton/json' });
     res.end(JSON.stringify(res.body));
@@ -130,8 +137,10 @@ app.use('/', function(req, res, next){
 
 // Render index.html
 app.use('/', function(req, res, next){
-  res.writeHead(200, "OK");
-  res.end(tmpl(_.extend({ user: JSON.stringify(req.user) }, ctx)));
+  fs.readFile("index.html", function(err, html){
+    res.writeHead(200, "OK");
+    res.end(html);
+  });
 });
 
 app.listen(3001);

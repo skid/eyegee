@@ -13,9 +13,26 @@
     <link rel="stylesheet" href="/static/main/css/ionicons.css">
     <script type="text/javascript" charset="utf-8" src="/static/main/js/loader.js"></script>
   </head>
-  <body>    
-    <!-- Popup for user login/registraion. Not visible by default. -->
-    <div id="login-window" class="popup">
+  <body>
+    <!-- Page content starts here -->
+    <header>
+      <form class='section search'>
+        <input type="text" name="search" value="" placeholder="Search with Google">
+        <button type="submit">Go</button>
+      </form>
+      <section class='section dashboard'>
+        <button type="button" control data-module="main" data-method="showWidgetIcons">Add Widget</button>
+        <button type="button" control data-module="main" data-method="showUserSettings">Sign in / Register</button>
+      </section>
+    </header>
+
+    <main></main>
+    
+    <footer></footer>
+    
+    <!-- Popup for user login/registraion. 
+         Not visible by default. -->
+    <div id="user-modal" class="popup">
       <label for="email">Email</label>
       <input type="email" name="email" value="" id="email">
       
@@ -25,45 +42,52 @@
       <button type="button" control data-module="main" data-method="doSignIn">OK</button>
     </div>
 
-    <!-- Popup for widget management. Not visible by default. -->
-    <div id="add-widget-window" class="popup">
-    </div>
+    <!-- Widget management modal. 
+         Not visible by default. -->
+    <div id="widget-modal" class="popup"></div>
 
-    <!-- Page content starts here -->
-    <header>
-      <form class='section search'>
-        <input type="text" name="search" value="" placeholder="Search with Google">
-        <button type="submit">Go</button>
-      </form>
-
-      <section class='section dashboard'>
-        <button type="button" control data-module="main" data-method="openWidgetPalette">Add Widget</button>
-        <button type="button" control data-module="main" data-method="signIn">
-          <% if(user.email) { %>
-            Sign out
-          <% } else { %>
-            Sign in / Register 
-          <% } %>
-        </button>
-      </section>
-    </header>
-
-    <main>
-    <main>
+    <!-- Underscore widget tempalte. 
+         All widgets are displayed in a container like this. They render their own content. -->
+    <script id="widget-template" type="tempalte/underscore" charset="utf-8">
+      <div class='widget-container'>
+        <div class='widget-head'>
+          <h3 class='widget-title'></h3>
+        </div>
+        <div class='widget-content'>LOADING...</div>
+      </div>
+    </script>
     
-    <footer>
-    </footer>
-
+    <!-- Underscore widget icon template. 
+         For each available widget we render this in the widget management modal -->
+    <script id="widget-icon-template" type="tempalte/underscore" charset="utf-8">
+      <div control class='palette-item' data-module='<%= module %>' data-method='newWidget'>
+        <div class='<%= icon %>'></div>
+        <h3><%= name %></h3>
+        <p><%= description %></p>
+      </div>
+    </script>
+    
+    <!-- Underscore widget settings template. 
+         When a widget is added or modified, we render this in the widget management modal -->
+    <script id="widget-settings-template" type="tempalte/underscore" charset="utf-8">
+      <div class='add-widget'>
+        <%= dialog %>
+        <button type='button' data-module='main' data-method='showWidgetIcons' control>Cancel</button>
+        <button type='button' data-module='<%= module %>' data-method='saveSettings' control>OK</button>
+      </div>
+    </script>
+    
+    
     <script type="text/javascript" charset="utf-8">
-    // This is the list of available modules on the website
-    var MODULES = <%= modules %>;
-
-    // This is the user information object. 
-    // It contains the modules used by the user and their configuration
-    var USER = <%= user %>;
-
-    // lib.js contains jquery, underscore and backbone
-    require(['/static/main/js/lib.js', '/static/main/js/main.js'], function(){ 
+    /** 
+     * The globals.js file is a nodejs generated JS file that sets 2 global variables:
+     *  MODULES - an array of available modules on the website
+     *  USER    - contains the modules used by the user and their configuration
+     *
+     * The lib.js file contains jquery, underscore and backbone.
+     * The main.js file contains the code for the main module and initialization function.
+    **/
+    require(['/state.js', '/static/main/js/lib.js', '/static/main/js/main.js'], function(){ 
       init();
     });
     </script>

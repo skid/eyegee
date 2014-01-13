@@ -3,7 +3,109 @@
  * Expects the RSS module manifest to be already loaded.
 **/
 (function(){
+
+  var RSSMixin = {
+    // Marks that a widget has been extended with the RSS methods
+    _rss: true,
+    // Marks if the widget has been rendered at least once, hence appeneded to the DOM
+    _rendered: false,
+    // Keeps the latest parsed XML feed
+    _parsed: null,
+
+    // Reneders the widget contents and appends the widget box to the DOM, if not already appended
+    render: function(){
+      // At this point, the widget object (this) should have a list of feed items
+      // and an 'attributes' attribute which holds the general info about the feed
+      this.title.html( this.attributes.title );
+      this.content.html(this.items.map(function(item){
+        return "<p>" + item.title + "</p>";
+      }));
+    },
+
+    // Each widget has a "data" property.
+    // Its content depends on the "data" property and this method's job
+    // is to take a look at it and decide what to show.
+    prepare: function(callback){
+      var self = this;
+      this.getFeed(function(err, feed){
+        if( err ) {
+          // TODO: Better error handling
+          return alert(err.message);
+        }
+
+        self.items = feed.items;
+        self.attributes = {
+          title: feed.title,
+          description: feed.description,
+          link: feed.link
+        }
+        callback();
+      });
+    },
+
+    getFeed: function(callback){
+      // TODO: cache feeds and then expire them. Trigger an automatic refresh on cache expiry.
+
+      $.ajax('/module/rss/feed', {
+        type: 'post',
+        context: this,
+        data: { source: this.data.source },
+        success: function(response){
+          var feed = parseFeed(response);
+          callback(feed ? null : new Error("Can't parse feed"), feed);
+        },
+        error: function(xhr, status, text){
+          callback(new Error(text));
+        }
+      });
+    }
+  }
+
+  // Uses the data argument to either create a new widget
+  // or modify an existing one (if a valid id is provided)
+  Eye.rss.setWidget = function(data){
+    var widget = Eye.main.getWidget(data.id);
+    widget._rss || _.extend(widget, RSSMixin);
+    widget.data = data;
+    
+    // We append the widget immiediately to the body.
+    // It will show a loading gif until we render real content in it.
+    if(!widget._rendered) {
+      Eye.main.appendWidget(widget);
+      widget._rendered = true;
+    }
+
+    widget.prepare(function(){
+      widget.render();
+      Eye.main.trigger('widget:ready', widget);
+    });
+  }
+
   
+  //
+  // RSS Parsers
+  //
+
+  function parseFeed(xml){
+    var xmldoc, feed;
+    
+    try {
+      if (window.ActiveXObject) {
+        xmldoc = new ActiveXObject("Microsoft.XMLDOM");
+        xmldoc.loadXML(xml);
+        xml = xmldoc;
+      }
+      if( typeof xml === 'string' ) {
+        xml = $.parseXML(xml);
+      }
+    } catch(e){
+      // Can't parse - invalid XML
+      return null;
+    }
+
+    return ($('channel', xml).length == 1) ? parseRSS(xml) : ($('feed', xml).length == 1) ? parseAtom(xml) : null;
+  }
+
   function parseRSS(xml) {
     var channel, feed = {};
 
@@ -57,100 +159,4 @@
 
     return feed;
   }
-  
-  function parseFeed(xml){
-    var xmldoc, feed;
-
-    if (window.ActiveXObject) {
-      xmldoc = new ActiveXObject("Microsoft.XMLDOM");
-      xmldoc.loadXML(xml);
-      xml = xmldoc;
-    }
-    if( typeof xml === 'string' ) {
-      xml = $.parseXML(xml);
-    }
-
-    return ($('channel', xml).length == 1) ? parseRSS(xml) : ($('feed', xml).length == 1) ? parseAtom(xml) : null;
-  }
-  
-  
-  
-  
-  /**
-   * This is not a real prototype.
-   * The attributes of this object are copied over the base widget supplied by main.
-  **/
-  var WidgetProto = {
-    // Marks that a widget has been extended with the RSS methods
-    _rss: true,
-    // Marks if the widget has been rendered at least once, hence appeneded to the DOM
-    _rendered: false,
-    // Keeps the latest parsed XML feed
-    _parsed: null,
-
-    // Reneders the widget contents and appends the widget box to the DOM, if not already appended
-    render: function(){
-      // At this point, the widget object (this) should have a list of feed items
-      // and an 'attributes' attribute which holds the general info about the feed
-      
-
-      // If this is the first time we render this widget
-      // we also append it to the DOM.
-      if(!this._rendered) {
-        Eye.main.appendWidget(this);
-        this._rendered = true;
-      }
-    },
-
-    // Each widgets has a "data" property.
-    // Its content depends on the "data" property and this method's job
-    // is to take a look at it and decide what to show.
-    prepare: function(callback){
-      this.getFeed(function(err, feed){
-        // TODO: Handle errors
-
-        this.items = feed.items;
-        this.attributes = {
-          title: feed.title,
-          description: feed.description,
-          link: feed.link
-        }
-        callback();
-      });
-    },
-
-    getFeed: function(callback){
-      // TODO: cache feeds and then expire them. Trigger an automatic refresh on cache expiry.
-
-      $.ajax('/rss/feed', {
-        context: this,
-        data: { source: this.data.source },
-        success: function(feed){
-          var feed = parseFeed(feed);
-          callback(feed || new Error("Can't parse feed"), feed);
-        },
-        error: function(){
-          // TODO: Examine the server error
-          callback(new Error("A server error happened"));
-        }
-      });
-    }
-  }
-
-  
-  
-  
-  
-  // Uses the data argument to either create a new widget
-  // or modify an existing one (if a valid id is provided)
-  Eye.rss.setWidget = function(data){
-    var widget = Eye.main.widget(data.id);
-
-    widget._rss || _.extend(widget, WidgetProto);
-    widget.data = data;
-    widget.prepare(function(){
-      widget.render();
-    });
-  }
-
 })();
