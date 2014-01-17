@@ -4,8 +4,15 @@
   
   /* Elements */
   var eMain        = $('main');
+    
+  /* Modal Dialogs */
   var eUserModal   = $('#user-modal');
   var eWidgetModal = $('#widget-modal');
+
+  eUserModal.on('mousedown', function(e){ e.originalEvent._stopCloseOperation = eUserModal; });
+  eWidgetModal.on('mousedown', function(e){ e.originalEvent._stopCloseOperation = eWidgetModal; });
+
+  var modals = [eUserModal, eWidgetModal];
   
   /* Templates */
   var tWidget         = _.template( $('#widget-template').html() );
@@ -25,6 +32,28 @@
     this.content = this.element.find('.widget-content');
   };
   
+  /**
+   * Function that deals with modal window positioning.
+   * This will allow modal windows to appear as dropdown menus under items.
+  **/
+  function showWindow(el, target){
+    var offset = target.offset();
+    var scroll = $(window).scrollTop();
+    var width  = $(window).width();
+    var size   = { w: target.outerWidth(), h: target.outerHeight() };
+    
+    var css = { position: "absolute", left: "", right: "", bottom: "" , top: Math.round(offset.top - scroll + size.h) };
+    
+    if( width - size.w / 2 >= offset.left ) {
+      css.left = Math.round(offset.left);
+    }
+    else {
+      css.right = Math.round(width - offset.left - size.w);
+    }
+
+    el.css(css).addClass('shown');
+  }
+  
   /** 
    * EyeGee module namespace.
    *
@@ -34,12 +63,18 @@
   window.Eye = {
     main: {
       /**
-       * Returns a widget by id or creates a new one
+       * Returns a widget by id or creates a new one 
+       * and sets the data-id property.
       **/
       getWidget: function(id){
-        return Cache[id] || (Cache[id] = new Widget(id));
+        var widget = Cache[id];
+        if(!widget) {
+          widget = (Cache[id] = new Widget(id));
+          widget.element.attr('data-id', id);
+        }
+        return widget;
       },
-      
+
       /**
        * Appends a widget to the body
       **/
@@ -48,22 +83,11 @@
       },
 
       /**
-       * Opens the widget modal window and renders the widget itcons in it.
-       * This palette also contains the dialog for making settings.
-      **/
-      showWidgetIcons: function(){
-        // Order the modules (except main) in the palette alphabetically and then render the manifest
-        eWidgetModal.html( _.without(_.keys(Eye), 'main').sort().map(function(k){ return Eye[k]; }).map(tWidgetIcon).join("") );
-        eWidgetModal.addClass('shown');
-      },
-      
-      /**
-       * Opens the widget modal window and renders the widget settings dialog in it.
+       * Renders the widget settings dialog in the widget window.
        * The widget settings dialog depends on the module the widget belongs to.
       **/
-      showWidgetSettings: function(module){
-        eWidgetModal.html( tWidgetSettings( module ) );
-        eWidgetModal.addClass('shown');
+      renderWidgetSettings: function(module){
+        eWidgetModal.html(tWidgetSettings(module));
 
         // Hide the widget settings modal once the widget is ready.
         // The specific widget module needs to fire a "widget:ready" events.
@@ -71,17 +95,34 @@
           eWidgetModal.removeClass('shown');
         });
       },
-
+      
+      /**
+       * Renders the widget picker dialog in the widget window.
+       * The widget picker dialog depends on the avaiable modules.
+      **/
+      renderWidgetPicker: function(){
+        // Order the modules (except main) in the palette alphabetically and then render the manifest
+        eWidgetModal.html( _.without(_.keys(Eye), 'main').sort().map(function(k){ return Eye[k]; }).map(tWidgetIcon).join("") );
+      },
 
       /**
-       * Opens the user modla window and renders the user settings dialog in it
+       * Opens the widget modal window and renders the widget icons in it - which is the default view.
+       * This palette also contains the dialog for making settings.
       **/
-      showUserSettings: function(){
-        
+      showWidgetWindow: function(e){
+        this.renderWidgetPicker();
+        showWindow(eWidgetModal, $(e.target));
+      },
+      
+      /**
+       * Opens the user modal window and renders the user settings dialog in it
+      **/
+      showUserWindow: function(e){
+        showWindow(eUserModal, $(e.target));
       }
     }
   };
-  
+
   /**
    * Make Eye.main an event manager
   **/
@@ -97,22 +138,35 @@
       return "/static/" + mod + "/manifest.js";
     }).concat(function(){
       // For each widget used by the current user, we need to load its module.
-      var loadees = USER.widgets.map(function(widget){ 
-        return Eye[widget.module].main; 
-      });
+      var scripts = USER.widgets.map(function(widget){ return Eye[widget.module].main; });
 
       // After loading the modules, we need to initialize and render the widgets.
-      require.apply(this, loadees.concat(function(){
+      require.apply(this, scripts.concat(function(){
         USER.widgets.forEach(function(widget){
           // This will initialize the widget and render it
           Eye[widget.module].setWidget(widget);
         });
       }));
+      
+      // Now load any stylesheets too
+      USER.widgets.forEach(function(widget){ 
+        var module = Eye[widget.module]; 
+        module.stylesheet && $('head').append($("<link rel='stylesheet' href='" + module.stylesheet + "'>"));
+      });
+      
     }));
-
-    $('body').delegate('[control]', 'click', function(){
-      Eye[ $(this).data('module') ][ $(this).data('method') ]();
-    }); 
+    
+    // Initialize the button's actions
+    $('body').delegate('[control]', 'click', function(e){
+      Eye[ $(this).data('module') ][ $(this).data('method') ](e);
+    });
+    
+    // Close modal windows when you click outside them
+    $(document).on('mousedown', function(e){
+      modals.forEach(function(modal){
+        e.originalEvent._stopCloseOperation !== modal && modal.removeClass('shown');
+      });
+    });
   }
 
 })();

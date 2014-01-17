@@ -1,0 +1,11 @@
+.rss-item {
+  margin: 5px 0;
+}
+
+.rss-show-all {
+  margin: 15px -10px -10px -10px;
+  padding: 4px 0;
+  background: #f5f5f5;
+  cursor: pointer;
+  text-align: center;
+}

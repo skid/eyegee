@@ -21,14 +21,18 @@
         <button type="submit">Go</button>
       </form>
       <section class='section dashboard'>
-        <button type="button" control data-module="main" data-method="showWidgetIcons">Add Widget</button>
-        <button type="button" control data-module="main" data-method="showUserSettings">Sign in / Register</button>
+        <button type="button" control data-module="main" data-method="showWidgetWindow">Add Widget</button>
+        <button type="button" control data-module="main" data-method="showUserWindow">Sign in / Register</button>
       </section>
     </header>
 
-    <main></main>
+    <main class="clearfix"></main>
     
     <footer></footer>
+
+    <!-- Reusable Backdrop element. 
+         Displays a semi-transparent layer over the page content. -->
+    <div class="backdrop"></div>
     
     <!-- Popup for user login/registraion. 
          Not visible by default. -->
@@ -60,7 +64,7 @@
     <!-- Underscore widget icon template. 
          For each available widget we render this in the widget management modal -->
     <script id="widget-icon-template" type="tempalte/underscore" charset="utf-8">
-      <div control class='palette-item' data-module='<%= module %>' data-method='newWidget'>
+      <div control class='widget-icon-item' data-module='<%= module %>' data-method='newWidget'>
         <div class='<%= icon %>'></div>
         <h3><%= name %></h3>
         <p><%= description %></p>
@@ -72,7 +76,7 @@
     <script id="widget-settings-template" type="tempalte/underscore" charset="utf-8">
       <div class='add-widget'>
         <%= dialog %>
-        <button type='button' data-module='main' data-method='showWidgetIcons' control>Cancel</button>
+        <button type='button' data-module='main' data-method='renderWidgetPicker' control>Cancel</button>
         <button type='button' data-module='<%= module %>' data-method='saveSettings' control>OK</button>
       </div>
     </script>

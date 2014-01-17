@@ -1,3 +1,17 @@
+/* REUSABLE CLASSES */
+.clearfix:before, .clearfix:after {
+  content: " ";
+  display: table;
+}
+.clearfix:after {
+  clear: both;
+}
+.clearfix {
+  *zoom: 1;
+}
+
+
+/* MAIN ELEMENTS */
 * {
   margin: 0;
   padding: 0;
@@ -24,7 +38,6 @@ button {
   padding: 4px;
 }
 
-
 /* Backdrop for showing modals */
 .backdrop {
   top:        0;
@@ -41,27 +54,57 @@ button {
   background: -moz-radial-gradient(circle, #fff, #ccc);
   background: -ms-radial-gradient(circle, #fff, #ccc);
 }
-
 .popup {
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
   position: absolute;
   visibility: hidden;
   padding: 10px;
   background-color: white;
   border: solid 1px #ddd;
+  z-index: 10;
 }
-
 .popup.shown {
   visibility: visible;
 }
 
 
-.palette-item {
+.widget-icon-item {
   border: solid 1px #ddd;
   padding: 10px;
   text-align: center;
   width: 150px;
   cursor: pointer;
 }
-.palette-item > div {
+.widget-icon-item > div {
   font-size: 40px;
 }
+
+
+.modal-container .modal {
+  /* This takes effect when the modal is initiated */
+  display: inline-block;
+}
+
+
+main {
+  
+}
+
+/* Widget Styles */
+.widget-container {
+  float: left;
+  box-sizing: border-box;
+  min-width: 360px;
+  border: solid 1px #ddd;  
+  padding: 0 10px 10px 10px;
+  margin: 10px 0 10px 10px;
+}
+
+.widget-head {
+  box-sizing: border-box;
+  padding: 5px;
+  margin: 0 -10px 10px;
+  
+  background: #ddd;
+}
+

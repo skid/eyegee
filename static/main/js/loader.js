@@ -10,21 +10,42 @@
  * The `require` function accepts strings and arrays. The last argument can be a callback.
  * Strings are loaded in parallel. Arrays of strings are loaded in succession (these are good for dependencies).
  * 
+ * The loader also protects you from loading the same script twice, for example like this:
+     
+     require("/script.js", "/another_script.js");
+     require("/script.js", "/yet_another_script.js");
+ *
 **/
 (function (){
+  var loading = {};
+  
   function load(src, fn){
-    var script    = document.createElement('script');
-    script.type   = 'text/javascript';
-    script.async  = true;
-    script.src    = src;
-    script.onload = script.onreadystatechange = function() {
-      if (!script.readyState || (script.readyState === 'complete' || script.readyState === 'loaded')) {
-        script.onload = script.onreadystatechange = null;
-        return fn();
-      }
-      alert("A server error happened."); 
-    };
-    document.head.appendChild(script);
+    var script;
+
+    if(src in loading) {
+      loading[src].push(fn);
+    }
+    else {
+      script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.async = true;
+      script.src = src;
+      script.onload = script.onreadystatechange = function() {
+        var callbacks = loading[src], fn;
+        delete loading[src];
+
+        if (!script.readyState || (script.readyState === 'complete' || script.readyState === 'loaded')) {
+          script.onload = script.onreadystatechange = null;
+          while(fn = callbacks.shift()) {
+            fn();
+          }
+          return;
+        }
+        alert("A server error happened."); 
+      };
+      loading[src] = [fn];
+      document.head.appendChild(script);
+    }
   }
 
   window.require = function(){

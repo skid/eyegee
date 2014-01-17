@@ -3,6 +3,7 @@
  * Expects the RSS module manifest to be already loaded.
 **/
 (function(){
+  var tLink = _.template("<a target='_blank' href='<%= link %>'><%= title %></a>");
 
   var RSSMixin = {
     // Marks that a widget has been extended with the RSS methods
@@ -16,10 +17,15 @@
     render: function(){
       // At this point, the widget object (this) should have a list of feed items
       // and an 'attributes' attribute which holds the general info about the feed
-      this.title.html( this.attributes.title );
-      this.content.html(this.items.map(function(item){
-        return "<p>" + item.title + "</p>";
-      }));
+      this.title.html(tLink(this.attributes));
+
+      this.content.html(this.items.slice(0, this.config.count).map(function(item){
+        return "<div class='rss-item'>" + tLink(item) + "</div>";
+      }).join(""));
+
+      if(this.config.count < this.items.length){
+        this.content.append("<div class='rss-show-all'>Show All</div>");
+      }
     },
 
     // Each widget has a "data" property.
@@ -49,7 +55,7 @@
       $.ajax('/module/rss/feed', {
         type: 'post',
         context: this,
-        data: { source: this.data.source },
+        data: { source: this.config.source },
         success: function(response){
           var feed = parseFeed(response);
           callback(feed ? null : new Error("Can't parse feed"), feed);
@@ -63,10 +69,11 @@
 
   // Uses the data argument to either create a new widget
   // or modify an existing one (if a valid id is provided)
-  Eye.rss.setWidget = function(data){
-    var widget = Eye.main.getWidget(data.id);
+  Eye.rss.setWidget = function(config){
+    var widget = Eye.main.getWidget(config.id);
+
     widget._rss || _.extend(widget, RSSMixin);
-    widget.data = data;
+    widget.config = config;
     
     // We append the widget immiediately to the body.
     // It will show a loading gif until we render real content in it.
@@ -80,12 +87,21 @@
       Eye.main.trigger('widget:ready', widget);
     });
   }
-
+  
+  //
+  // Widget Logic
+  //
+  $(document).delegate('.rss-show-all', 'click', function(e){
+    var widget = Eye.main.getWidget($(this).parents('.widget-container').data('id'));
+    if(widget) {
+      widget.config.count = 10000;
+      widget.render();
+    }
+  });
   
   //
   // RSS Parsers
   //
-
   function parseFeed(xml){
     var xmldoc, feed;
     
