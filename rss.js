@@ -16,12 +16,12 @@ app.use('/widget', function(req, res, next){
   // RSS Widget parameters
   var source = req.body.source;
   var count  = req.body.count;
-  var id     = req.body.id;
-
+  var id     = parseInt(req.body.id);
+  
   // Check if the widget already exists
   var widgets = req.user.widgets;
-  var exists  = id && _.find(widgets, function(w){ id === w.id; });
-  
+  var exists  = id && _.find(widgets, function(w){ return id === w.id; });
+
   // If exists, update it
   if(exists) {
     exists.count = count;

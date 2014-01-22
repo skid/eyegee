@@ -16,46 +16,53 @@
   <body>
     <!-- Page content starts here -->
     <header>
-      <form class='section search'>
-        <input type="text" name="search" value="" placeholder="Search with Google">
+      <form class='section search' method="get" action="http://google.com/search">
+        <input type="text" name="q" value="" placeholder="Search with Google">
         <button type="submit">Go</button>
       </form>
-      <section class='section dashboard'>
-        <button type="button" control data-module="main" data-method="showWidgetWindow">Add Widget</button>
-        <button type="button" control data-module="main" data-method="showUserWindow">Sign in / Register</button>
+      <section class='section options'>
+        <button control type="button" data-module="main" data-method="showWidgetWindow">Add Widget</button>
+        <button control type="button" data-module="main" data-method="showUserWindow" id="session-button">Sign in / Register</button>
       </section>
     </header>
 
     <main class="clearfix"></main>
-    
+
     <footer></footer>
 
     <!-- Reusable Backdrop element. 
          Displays a semi-transparent layer over the page content. -->
-    <div class="backdrop"></div>
+    <div id="backdrop"></div>
     
-    <!-- Popup for user login/registraion. 
+    <!-- Popup for user login/registraion.
          Not visible by default. -->
     <div id="user-modal" class="popup">
-      <label for="email">Email</label>
-      <input type="email" name="email" value="" id="email">
-      
-      <label for="password">Password</label>
-      <input type="password" name="password" value="" id="password">
-
-      <button type="button" control data-module="main" data-method="doSignIn">OK</button>
+      <div class="section-signin">
+        <input type="email" id="email" value="" placeholder="Email">
+        <input type="password" value="" id="password" placeholder="Password">
+        <button control type="button" data-module="main" data-method="userSignin" id="login-button">Log In</button>
+      </div>
+      <div class="section-register">
+        <span>OR</span>
+        <input type="password" value="" id="password-check" placeholder="Repeat Password">
+        <button control type="button" data-module="main" data-method="userRegister" id="register-button">Register</button>
+      </div>
     </div>
 
     <!-- Widget management modal. 
          Not visible by default. -->
     <div id="widget-modal" class="popup"></div>
-
+        
     <!-- Underscore widget tempalte. 
          All widgets are displayed in a container like this. They render their own content. -->
     <script id="widget-template" type="tempalte/underscore" charset="utf-8">
       <div class='widget-container'>
-        <div class='widget-head'>
+        <div class='widget-head clearfix'>
           <h3 class='widget-title'></h3>
+          <div class='widget-options'>
+            <a control href='javascript:;' class='widget-settings' data-module='main' data-method='showWidgetWindow' data-extra='<%= id %>'>settings</a>
+            <a control href='javascript:;' class='widget-remove' data-module='main' data-method='removeWidget' data-extra='<%= id %>'>remove</a>
+          </div>
         </div>
         <div class='widget-content'>LOADING...</div>
       </div>
@@ -64,7 +71,7 @@
     <!-- Underscore widget icon template. 
          For each available widget we render this in the widget management modal -->
     <script id="widget-icon-template" type="tempalte/underscore" charset="utf-8">
-      <div control class='widget-icon-item' data-module='<%= module %>' data-method='newWidget'>
+      <div control class='widget-icon-item' data-module='<%= module %>' data-method='widget'>
         <div class='<%= icon %>'></div>
         <h3><%= name %></h3>
         <p><%= description %></p>
@@ -74,13 +81,13 @@
     <!-- Underscore widget settings template. 
          When a widget is added or modified, we render this in the widget management modal -->
     <script id="widget-settings-template" type="tempalte/underscore" charset="utf-8">
-      <div class='add-widget'>
+      <div class='add-widget clearfix'>
         <%= dialog %>
-        <button type='button' data-module='main' data-method='renderWidgetPicker' control>Cancel</button>
-        <button type='button' data-module='<%= module %>' data-method='saveSettings' control>OK</button>
+        <div class='add-widget-controls'>
+          <button control type='button' data-module='<%= module %>' data-method='saveSettings' data-extra='<%= extra %>'>OK</button>
+        </div>
       </div>
     </script>
-    
     
     <script type="text/javascript" charset="utf-8">
     /** 

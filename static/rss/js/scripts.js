@@ -4,6 +4,15 @@
 **/
 (function(){
   var tLink = _.template("<a target='_blank' href='<%= link %>'><%= title %></a>");
+  var tItem = _.template("\
+<div class='rss-item clearfix'>\
+  <% if(comments){ %>\
+    <div class='rss-item-meta'>\
+      <a class='rss-item-comments' href='<%= comments %>' target='_blank'>Comments</a>\
+    </div>\
+  <% } %>\
+  <%= link %>\
+</div>");
 
   var RSSMixin = {
     // Marks that a widget has been extended with the RSS methods
@@ -19,11 +28,14 @@
       // and an 'attributes' attribute which holds the general info about the feed
       this.title.html(tLink(this.attributes));
 
-      this.content.html(this.items.slice(0, this.config.count).map(function(item){
-        return "<div class='rss-item'>" + tLink(item) + "</div>";
+      var count = parseInt(this.config.count, 10);
+      isNaN(count) && (count = 100000);
+
+      this.content.html(this.items.slice(0, count).map(function(item){
+        return tItem({ link: tLink(item), comments: item.comments || null });
       }).join(""));
 
-      if(this.config.count < this.items.length){
+      if(count < this.items.length){
         this.content.append("<div class='rss-show-all'>Show All</div>");
       }
     },
@@ -71,8 +83,11 @@
   // or modify an existing one (if a valid id is provided)
   Eye.rss.setWidget = function(config){
     var widget = Eye.main.getWidget(config.id);
-
-    widget._rss || _.extend(widget, RSSMixin);
+    
+    if(!widget._rss) {
+      _.extend(widget, RSSMixin);
+      widget.element.addClass('rss');
+    }
     widget.config = config;
     
     // We append the widget immiediately to the body.
@@ -91,13 +106,17 @@
   //
   // Widget Logic
   //
-  $(document).delegate('.rss-show-all', 'click', function(e){
-    var widget = Eye.main.getWidget($(this).parents('.widget-container').data('id'));
-    if(widget) {
-      widget.config.count = 10000;
-      widget.render();
-    }
-  });
+  $(document)
+    .delegate('.rss-show-all', 'click', function(e){
+      var widget = Eye.main.getWidget($(this).parents('.widget-container').data('id'));
+      if(widget) {
+        widget.config.count = "all";
+        widget.render();
+      }
+    })
+    .delegate('.rss-item-description-toggle', 'click', function(e){
+      $(this).parent().next().toggle();
+    });
   
   //
   // RSS Parsers

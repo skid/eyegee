@@ -7,35 +7,55 @@
     dialog:      '/static/rss/html/dialog.html',
     main:        '/static/rss/js/scripts.js',
     stylesheet:  '/static/rss/css/styles.css',
-    name:        'RSS Widget',
+    name:        'RSS',
     icon:        'ion-social-rss',
-    description: 'Add an RSS feed from your favourite site',
+    description: '',
+    
+    /**
+     * UI METHOD: This method is invoked when a user clicks somewhere
+     *
+     * Populates the widget settings dialog with custom HTML for this module
+    **/
+    widget: function(e, widget){
+      // Once we fetch the dialog, we can replace this method with a simpler one
+      // that uses the cached version of the dialog HTML.
+      this.widget = function(e, widget){
 
-    newWidget: function(callback){
-      // Once we fetch the dialog, we can replace this method with a simpler one  
-      this.newWidget = function(callback){
-        Eye.main.renderWidgetSettings(this);
+        // For new widgets, the widget argument is not passed
+        if(widget) {
+          Eye.main.once('widget:' + widget.config.id + ':settings', function(){
+            $('#rss-item-count').val(widget.config.count);
+            $('#rss-source').val(widget.config.source);
+          });
+        }
+
+        Eye.main.renderWidgetSettings(this, widget);
       }
 
       $.ajax(this.dialog, {
         context: this,
         success: function(html){
           this.dialog = html;
-          this.newWidget();
+          this.widget(e, widget);
         }
       });
     },
 
-    // Called when clicking OK in the widgetSettingsDialog
-    saveSettings: function(){
-      // These element IDs should be unique in the document.
-      // The elements are defined in rss/html/dialog.html.
+    /**
+     * UI METHOD: This method is invoked when a user clicks somewhere
+     *
+     * Takes care of creating/modifying a widget once the widget settings dialog is submitted.
+    **/
+    saveSettings: function(e, widgetId){
+      var widget = Eye.main.getWidget(widgetId);
       var config = {
-        count: parseInt($('#rss-item-count').val(), 10),
-        source: $('#rss-source').val(), 
-        id: null
+        module: 'rss',
+        count: $('#rss-item-count').val(),
+        source: $('#rss-source').val(),
+        // Existing RSS widgets will have the "_rss" property defined
+        id: widget._rss ? widget.config.id : null
       };
-      
+
       // The setWidget methods is defined in the main script file
       // At this point we don't know if it's loaded yet.
       var next = _.bind(function(){ this.setWidget(config); }, this);

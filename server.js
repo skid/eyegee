@@ -7,6 +7,7 @@ Error.stackTraceLimit = Infinity;
 SESSION_MAX_AGE       = 1000 * 60 * 60 * 24;
 
 var connect = require('connect');
+var crypto  = require('crypto');
 var redis   = require('redis');
 var fs      = require('fs');
 var _       = require('underscore');
@@ -44,7 +45,7 @@ app.use('/', function(req, res, next){
     // No cookie: this is first time visit. Generate a new cookie.
     if( !user ) {
       req.session.uid = guid();
-      req.user = { widgets:[] };
+      req.user = { widgets: [] };
       next();
     }
     
@@ -63,7 +64,7 @@ app.use('/', function(req, res, next){
         next();
       });
     }
-    
+
     // Data screwed up
     else {
       next(new Error("Invalid user session data for cookie '" + req.session.uid + "'"));
@@ -71,11 +72,80 @@ app.use('/', function(req, res, next){
   });
 });
 
+app.use("/signout", function(req, res, next){
+  req.user = { widgets: [] };
+  db.del("sess:" + req.session.uid, function(){
+    res.body = { status: "ok" };
+    next();
+  });
+});
+
+// This layer will respond to requests to /login, 
+// will fetch a user from the database
+app.use('/signin', function(req, res, next){
+  db.get('user:' + req.body.email, function(err, user){
+    if(err){ return next(err); }
+
+    user = user && JSON.parse(user);
+
+    if(!user || !comparePasswords(req.body.password, user.password)) {
+      res.body = { status: "error", statusCode: 401, message: "Email/Password combination does not exist" };
+    }
+    else {
+      req.user = user;
+      res.body = { status: "ok", user: _.clone(req.user) };
+
+      // Never send passwords out
+      delete res.body.user.password;
+    }
+    next();
+  });
+});
+
+
+// This layer will respond to requests to /register and will 
+// register a new user if an email and password is provided
+app.use("/register", function(req, res, next){
+  // TODO: Do not allow re-registering of the same email
+
+  // To register a user we simply need to set the email and password
+  // to the anonymous session object. The middleware layer that saves the session
+  // will push this to the database therefore creating a new user account.
+  if(req.body.email && req.body.password) {
+    req.user.password = hashPassword(req.body.password);
+    req.user.email = req.body.email;
+    res.body = { status: 'ok', user: _.clone(req.user) };
+
+    // Never send passwords out
+    delete res.body.user.password;
+  }
+  else {
+    res.body = { status: 'error', statusCode: 400, message: 'Email or Password missing' };
+  }
+
+  next();
+});
+
+// This layer will respond to requests made to /remove_widget and will
+// remove a widget with the specific id from the user configuration
+app.use('/remove_widget', function(req, res, next){
+  var id = parseInt(req.body.id, 10);
+
+  req.user.widgets = req.user.widgets.filter(function(w){ return w.id !== id });
+  res.body = { status: "ok" }
+  next();
+});
+
 // This layer will respond to requests to /state.js and send a javascript file
 // that will set global variables which describe the application state
 app.use('/state.js', function(req, res, next){
   res.writeHead(200, "OK", { "Content-Type": "application/javascript" });
-  res.end("MODULES=" + JSON.stringify(_.keys(modules)) + ";USER=" + JSON.stringify(req.user) + ";" );
+  
+  // Never send passwords out
+  var user = _.clone(req.user);
+  delete user.password;
+
+  res.end("MODULES=" + JSON.stringify(_.keys(modules)) + ";USER=" + JSON.stringify(user) + ";" );
 });
 
 // Proxy to modules
@@ -123,7 +193,7 @@ app.use('/', function(req, res, next){
 });
 
 // 404 Sentinel
-// Requests that get to here without explicitly requesting "/"
+// Requests that made it here without explicitly requesting "/"
 // are requests that didn't match any other middleware layer, therefore 404 errors
 app.use('/', function(req, res, next){
   if( req.url !== '/' ) {
@@ -137,6 +207,7 @@ app.use('/', function(req, res, next){
 
 // Render index.html
 app.use('/', function(req, res, next){
+  // TODO: Pipe the file to the response
   fs.readFile("index.html", function(err, html){
     res.writeHead(200, "OK");
     res.end(html);
@@ -147,15 +218,30 @@ app.listen(3001);
 console.log("Server running on port 3001");
 
 
-
-
 /**
  * Helpers
 **/
-
 function s4() {
   return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
-};
+}
+
 function guid() {
   return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+}
+
+function hashPassword(password){
+  var hash, salt = guid();
+
+  hash = crypto.createHash("sha1");
+  hash.update(salt + password);
+
+  return salt + ":" + hash.digest("hex");
+}
+
+function comparePasswords(raw, salted){
+  var salthash = salted.split(":");
+  var hash = crypto.createHash("sha1");
+  
+  hash.update(salthash[0] + raw);
+  return hash.digest("hex") === salthash[1];
 }
