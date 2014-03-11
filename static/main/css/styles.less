@@ -1,0 +1,345 @@
+// Color theme taken from http://www.colourlovers.com/palette/692385/Making_Coffee
+@link: #0CA5B0;
+@neutral: #A5B3AA;
+@error: #CC2222;
+@bg_dark: #4E3F30;
+@bg_light: #FEFEEB;
+@text_light: #F8F4E4;
+@text_dark: darken(@neutral, 50%);
+
+/** Reusable classes **/
+.clearfix() {
+  *zoom: 1;
+  
+  &:before, &:after {
+    content: " ";
+    display: table;
+  }
+  &:after {
+    clear: both;
+  }
+}
+
+.clearfix {
+  .clearfix();
+}
+
+
+.loading-glyph {
+  font-size: 30px; 
+  font-weight: bold;
+  color: @link;
+}
+
+
+/** Main elements **/
+* {
+  font-family: "Ubuntu";
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: url(../img/transparent-noise-light.png), 
+              url(../img/background.jpg) center center / 100% 100% no-repeat fixed;
+  color: @text_dark;
+  font-size: 13px;
+  overflow-y: scroll;
+  min-width: 1024px;
+}
+
+button {
+  border: none;
+  cursor: pointer;
+}
+
+button[class^=ion-] {
+  font-size: 20px;
+  line-height: 30px;
+}
+
+input {
+  color: @text_dark;
+  padding: 4px;
+  border: solid 1px #ddd;
+  font-size: 13px;
+}
+
+button:active, button:focus, input:active, input:focus {
+  outline: none;
+}
+
+a {
+ color: @link;
+}
+
+a:visited {
+  color: @neutral;
+}
+
+
+/* Header section */
+header {
+  position: relative;
+  height: 75px;
+  width: 100%;
+  background-color: @bg_dark;
+  background-image: url(../img/transparent-noise.png);
+
+  h1 {
+    position: absolute;
+    top: 0; 
+    left: 20px;
+    margin: none;
+    padding: none;
+    color: @text_light;
+    font-size: 60px;
+    letter-spacing: -8px;
+  }
+  
+  button {
+    font-size: 14px;
+    height: 30px;
+    background: @text_light;
+    color: @link;
+    padding: 0 10px;
+  }
+  
+  .section {
+    position: absolute;
+    
+    * {
+      vertical-align: middle;
+      display: inline-block;
+      height: 30px;
+      border: none;
+      margin: none;
+    }
+
+    &.search {
+      top: 28px;
+      left: 230px;
+      padding: 0;
+      margin: 0;
+
+      input {
+        font-size: 14px;
+        width: 400px;
+        padding : 0 5px;
+      }
+
+      button {
+        margin-left: 10px;
+      }
+    }
+
+    &.options {
+      right: 20px;
+      bottom: 0px;
+      
+      button {
+        margin-right: 5px;
+      }
+    }
+  }
+}
+
+/* Main content */
+main {
+  
+}
+
+
+/* Modal Window Styles */
+
+// A general purpose backdrop element
+#backdrop {
+  top:        0;
+  left:       0;
+  right:      0;
+  bottom:     0;
+  z-index:    5;
+  visibility: hidden;
+  opacity:    .55;
+  position:   fixed;
+  background: #fff;
+  background: -webkit-gradient(radial, center center, 0, center center, 460, from(#fff), to(#ccc));
+  background: -webkit-radial-gradient(circle, #fff, #ccc);
+  background: -moz-radial-gradient(circle, #fff, #ccc);
+  background: -ms-radial-gradient(circle, #fff, #ccc);
+}
+
+// Modal windows have this class
+.popup {
+  position: absolute;
+  z-index: 10;
+  
+  box-shadow: 0 0 2px 1px rgba(0,0,0,0.3);
+  background-color: @text_light;
+  visibility: hidden;
+  
+  button {
+    background-color: @link;
+    color: @text_light;
+  }
+}
+
+.popup.shown, #backdrop.shown {
+  visibility: visible;
+}
+
+// Class added to buttons that open a popup window
+// while the popup window is shown.
+.modal-active {
+  position: relative;
+  z-index: 11; 
+  background-color: @text_light;
+  box-shadow: 0 -2.5px 2px 1px rgba(0, 0, 0, 0.3);
+}
+
+// The user registration and profile management modal
+#user-modal {
+  padding: 10px;
+
+  button {
+    width: 70px;
+    padding: 4px;
+    border: solid 1px #ddd;
+    font-size: 13px;
+  }
+  
+  input {
+    width: 120px;
+    margin-right: 5px;
+  }
+  
+  button:focus, input:focus {
+    outline: solid 1px @link;
+  }
+
+  .section-signin {
+    width: 350px;
+    padding-bottom: 10px;
+    border-bottom: solid 1px #f5f5f5;
+  }
+  
+  .section-register span {
+    width: 135px;
+    display: inline-block;
+    text-align: center;
+  }
+}
+
+// The widget menu items that you see when you choose a new widget to add.
+.widget-icon-item {
+  .clearfix();
+  
+  margin: 10px;
+  width: 220px;
+  cursor: pointer;
+  
+  > .widget-icon-title {
+    color: @bg_dark;
+
+    > div {
+      display: table-cell;
+      width: 30px;
+      height: 25px;
+      line-height: 25px;
+      font-size: 30px;
+      vertical-align: bottom;
+
+      &.ion-social-rss {
+        // These font glyphs are OVERSIZED ... dunno why.
+        font-size: 25px;
+      }
+    }
+  
+    > h3 {
+      display: table-cell;
+      height: 25px;
+      font-size: 16px;
+      font-weight: normal;
+      vertical-align: bottom;
+    }
+  }
+  
+  // The widget description text
+  > p {
+    color: @neutral;
+  }
+}
+
+// The wrapper for the widget settings menu
+.widget-settings {
+  padding: 10px;
+
+  // The bottom part where the OK and DELETE buttons are placed
+  .widget-settings-controls {
+    position: relative;
+    height: 20px;
+    margin: 10px -10px -10px -10px;
+    padding-top: 10px;
+    
+    >a[class^=ion-] {
+      position: absolute;
+      bottom: 3px;
+      height: 20px;
+      font-size: 20px;
+      text-decoration: none;
+      padding: 0 5px;
+    }
+
+    .btn-ok {
+      right: 3px;
+    }
+
+    .btn-delete {
+      left: 3px;
+    }
+  }
+}
+
+
+
+/* Widget Styles */
+.widget-container {
+  width: ~"calc(33.33% - 15px)";
+  margin-right: 10px;
+  float: left;
+  box-sizing: border-box;
+  border: solid 1px #ddd;  
+  padding: 0 10px 10px 10px;
+  margin: 10px 0 10px 10px;
+  background: fadeout(@bg_light, 50%);
+}
+
+.widget-head {
+  box-sizing: border-box;
+  padding: 5px 0px 5px 10px;
+  margin: 0 -10px 10px;
+  background: fadeout(@text_light, 50%);
+  
+  h3 {
+    display: inline-block;
+    float: left;
+    a {
+      font-size: 17px;
+      color: @bg_dark;
+      text-transform: capitalize;
+    }
+  }
+
+  .widget-options {
+    display: inline-block;
+    float: right;
+
+    a {
+      text-decoration: none;
+      font-size: 20px;
+      color: @link;
+      margin-left: 4px;
+      padding: 2px 10px;
+    } 
+  }
+}

@@ -13,7 +13,10 @@ var fs      = require('fs');
 var _       = require('underscore');
 
 global.db      = redis.createClient();
-global.modules = { rss: require('./rss') }
+global.modules = { 
+  rss: require('./rss'), 
+  comic: require('./comic') 
+}
 
 // Each module has its own Connect server for  handling module-specific requests.
 var moduleProxy = connect();
@@ -35,9 +38,10 @@ app.use('/static', function(req, res, next){
 
 app.use('/', connect.cookieParser());
 app.use('/', connect.urlencoded({ limit: '100kb' }));
-app.use('/', connect.cookieSession({ secret: "kirinthormageslikesecrets", cookie: { maxAge: SESSION_MAX_AGE } }));
+app.use('/', connect.cookieSession({ secret: "kirintormageslikesecrets", cookie: { maxAge: SESSION_MAX_AGE } }));
 
-// Get user and sessions
+// This runs for each request.
+// It establishes the user session and passes it on to the next layers.
 app.use('/', function(req, res, next){
   db.get('sess:' + req.session.uid, function(err, user){
     if(err){ return next(err); }
@@ -72,6 +76,8 @@ app.use('/', function(req, res, next){
   });
 });
 
+// This layer will respond to requests to /signout
+// Signs out the user by deleting the session.
 app.use("/signout", function(req, res, next){
   req.user = { widgets: [] };
   db.del("sess:" + req.session.uid, function(){
@@ -80,8 +86,8 @@ app.use("/signout", function(req, res, next){
   });
 });
 
-// This layer will respond to requests to /login, 
-// will fetch a user from the database
+// This layer will respond to requests to /signin
+// It will try to fetch a user from the database and compare its password against the supplied one.
 app.use('/signin', function(req, res, next){
   db.get('user:' + req.body.email, function(err, user){
     if(err){ return next(err); }
@@ -136,6 +142,7 @@ app.use('/remove_widget', function(req, res, next){
   next();
 });
 
+
 // This layer will respond to requests to /state.js and send a javascript file
 // that will set global variables which describe the application state
 app.use('/state.js', function(req, res, next){
@@ -147,6 +154,7 @@ app.use('/state.js', function(req, res, next){
 
   res.end("MODULES=" + JSON.stringify(_.keys(modules)) + ";USER=" + JSON.stringify(user) + ";" );
 });
+
 
 // Proxy to modules
 app.use('/module', moduleProxy);
@@ -219,16 +227,21 @@ console.log("Server running on port 3001");
 
 
 /**
- * Helpers
+ * Helper functions.
+ * These are only used in the server.js file.
 **/
+
+// Generates a random 4 digit hex string
 function s4() {
   return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
 }
 
+// Generates a pretty unique guid.
 function guid() {
   return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
 }
 
+// Hashes (sha1) a password with a randomly generated salt.
 function hashPassword(password){
   var hash, salt = guid();
 
@@ -238,6 +251,7 @@ function hashPassword(password){
   return salt + ":" + hash.digest("hex");
 }
 
+// Compares a password to a hashed and salted password
 function comparePasswords(raw, salted){
   var salthash = salted.split(":");
   var hash = crypto.createHash("sha1");

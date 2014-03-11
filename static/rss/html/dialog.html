@@ -1,16 +1,29 @@
 <div class="rss-settings">
+  <h3>RSS Widget Options</h3>
+
   <div class="error-message"></div>
-  <input id="rss-source" type="text" placeholder="RSS Url">
-  Show
-  <select id="rss-item-count">
-    <option value="1">1</option>
-    <option value="3">3</option>
-    <option value="5">5</option>
-    <option value="7">7</option>
-    <option value="10">10</option>
-    <option value="15">15</option>
-    <option value="20">20</option>
-    <option value="all">All</option>
-  </select>
-  Items
+  
+  <span class="rss-label">Widget Title</span>
+  <input class="rss-title rss-input" type="text" placeholder="Optional...">
+  
+  <span class="rss-label">Sources <small>If you give us a website URL, we'll look for RSS feeds.</small></span>
+  <div class="rss-sources">
+    <input class="rss-source rss-input" type="text" placeholder="RSS Feed / Site URL">
+  </div>
+  
+  
+  <div class="rss-options">
+    Show &nbsp;
+    <select id="rss-item-count">
+      <option value="1">1</option>
+      <option value="3">3</option>
+      <option value="5">5</option>
+      <option value="7">7</option>
+      <option value="10">10</option>
+      <option value="15">15</option>
+      <option value="20">20</option>
+      <option value="all">All</option>
+    </select>
+    &nbsp; Items
+  </div>
 </div>

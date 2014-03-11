@@ -7,8 +7,7 @@
     <meta name="description" content="Google Replacement">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- Place favicon.ico and apple-touch-icon(s) in the root directory -->
-
+    <!-- Place favicon.ico and apple-touch-icon(s) in the root directory -->    
     <link rel="stylesheet" href="/static/main/css/styles.css">
     <link rel="stylesheet" href="/static/main/css/ionicons.css">
     <script type="text/javascript" charset="utf-8" src="/static/main/js/loader.js"></script>
@@ -16,12 +15,16 @@
   <body>
     <!-- Page content starts here -->
     <header>
+      <h1>EyeGee</h1>
+        
       <form class='section search' method="get" action="http://google.com/search">
         <input type="text" name="q" value="" placeholder="Search with Google">
-        <button type="submit">Go</button>
+        <button type="submit" class="ion-search"></button>
       </form>
+
       <section class='section options'>
-        <button control type="button" data-module="main" data-method="showWidgetWindow">Add Widget</button>
+        <button control type="button" data-module="main" data-method="showWidgetWindow" class="ion-plus-round"></button>
+        <button control type="button" data-module="main" data-method="showPreferencesWindow" class="ion-gear-a"></button>
         <button control type="button" data-module="main" data-method="showUserWindow" id="session-button">Sign in / Register</button>
       </section>
     </header>
@@ -33,7 +36,7 @@
     <!-- Reusable Backdrop element. 
          Displays a semi-transparent layer over the page content. -->
     <div id="backdrop"></div>
-    
+
     <!-- Popup for user login/registraion.
          Not visible by default. -->
     <div id="user-modal" class="popup">
@@ -52,7 +55,8 @@
     <!-- Widget management modal. 
          Not visible by default. -->
     <div id="widget-modal" class="popup"></div>
-        
+
+
     <!-- Underscore widget tempalte. 
          All widgets are displayed in a container like this. They render their own content. -->
     <script id="widget-template" type="tempalte/underscore" charset="utf-8">
@@ -60,35 +64,42 @@
         <div class='widget-head clearfix'>
           <h3 class='widget-title'></h3>
           <div class='widget-options'>
-            <a control href='javascript:;' class='widget-settings' data-module='main' data-method='showWidgetWindow' data-extra='<%= id %>'>settings</a>
-            <a control href='javascript:;' class='widget-remove' data-module='main' data-method='removeWidget' data-extra='<%= id %>'>remove</a>
+            <a control href='javascript:;' class='ion-gear-b' data-module='main' data-method='showWidgetWindow' data-extra='<%= id %>'></a>            
           </div>
         </div>
-        <div class='widget-content'>LOADING...</div>
+        <div class='widget-content'><center><span class="ion-ios7-gear-outline ion-spin loading-glyph" data-animation="true"></span></center></div>
       </div>
     </script>
-    
+
+
     <!-- Underscore widget icon template. 
          For each available widget we render this in the widget management modal -->
     <script id="widget-icon-template" type="tempalte/underscore" charset="utf-8">
       <div control class='widget-icon-item' data-module='<%= module %>' data-method='widget'>
-        <div class='<%= icon %>'></div>
-        <h3><%= name %></h3>
+        <div class='widget-icon-title'>
+          <div class='<%= icon %>'></div>
+          <h3><%= name %></h3>
+        </div>
         <p><%= description %></p>
       </div>
     </script>
-    
+
+
     <!-- Underscore widget settings template. 
          When a widget is added or modified, we render this in the widget management modal -->
     <script id="widget-settings-template" type="tempalte/underscore" charset="utf-8">
-      <div class='add-widget clearfix'>
+      <div class='widget-settings clearfix'>
         <%= dialog %>
-        <div class='add-widget-controls'>
-          <button control type='button' data-module='<%= module %>' data-method='saveSettings' data-extra='<%= extra %>'>OK</button>
+        <div class='widget-settings-controls'>
+          <a control href="javascript:;" class='ion-checkmark btn-ok' data-module='<%= module %>' data-method='saveSettings' data-extra='<%= extra %>'></a>
+          <% if(extra){ %>
+            <a control href='javascript:;' class='ion-trash-b btn-delete' data-module='main' data-method='removeWidget' data-extra='<%= extra %>'></a>
+          <% } %>  
         </div>
       </div>
     </script>
-    
+
+
     <script type="text/javascript" charset="utf-8">
     /** 
      * The globals.js file is a nodejs generated JS file that sets 2 global variables:

@@ -15,7 +15,7 @@
   var eEmailInput     = $('#email');
   var ePasswordInput  = $('#password');
   var ePassCheckInput = $('#password-check');
-  
+
   /* Buttons */
   var eSessionButton  = $('#session-button');
   var eRegisterButton = $('#register-button');
@@ -25,15 +25,15 @@
   var eUserModal   = $('#user-modal');
   var eWidgetModal = $('#widget-modal');
   var modals       = [eUserModal, eWidgetModal];
-  
+
   // Modify the original event while it bubbles up.
   // We need to know which modal window is being clicked on so we don't close it by mistake.
   _.each(modals, function(modal){
     modal.on('mousedown', function(e){ 
-      e.originalEvent._currentModal = modal; 
+      e.originalEvent._currentModal = modal;
     });
   });
-  
+
   /**
    * Deals with modal window positioning.
    * This will allow modal windows to appear as dropdown menus under items.
@@ -43,24 +43,31 @@
     var scroll = $(window).scrollTop();
     var width  = $(window).width();
     var size   = { w: target.outerWidth(), h: target.outerHeight() };
-    var css    = { position: "absolute", left: "", right: "", bottom: "" , top: Math.round(offset.top - scroll + size.h) + 5 };
+    var css    = { position: "absolute", left: "", right: "", bottom: "" , top: Math.round(offset.top - scroll + size.h) };
 
-    if( (width - size.w) / 2 >= offset.left ) {
-      css.left = Math.round(offset.left) + 5;
+    css.right = Math.round(width - offset.left - size.w);
+    
+    if(target){
+      // The "target" is a button that invoked the modal
+      // We want to style it to look like it's part of the modal.
+      // We also need to keep a reference to it for when the modal closes.
+      target.addClass('modal-active');
+      el.__invoker = target;
     }
-    else {
-      css.right = Math.round(width - offset.left - size.w) + 5;
-    }
-
     el.css(css).addClass('shown');
   }
-  
+
   /**
    * Hides a specific modal and sends a signal that the modal 
    * in question has been hidden.
   **/
   function hideModal(el, target) {
     el.removeClass('shown');
+
+    if(el.__invoker) {
+      el.__invoker.removeClass('modal-active');
+      el.__invoker = null;
+    }
   }
   
   
@@ -125,6 +132,9 @@
         this._setUser('/register', email, pass);
       },
       
+      /**
+       * Signs in the user
+      **/
       userSignin: function(){
         var email = eEmailInput.val();
         var pass = ePasswordInput.val();
@@ -132,6 +142,9 @@
         this._setUser('/signin', email, pass);
       },
       
+      /**
+       * Signs out the user
+      **/
       userSignout: function(){
         $.ajax("/signout", { 
           success: function(){ 
@@ -225,7 +238,7 @@
         if( !confirm("Are you sure you want to remove this widget?") ) {
           return;
         }
-        
+
         $.ajax("/remove_widget", {
           type: 'post',
           dataType: 'json',
@@ -241,6 +254,7 @@
           }
         });
       },
+
 
       /**
        * UI METHOD: This method is invoked when a user clicks somewhere
@@ -279,6 +293,7 @@
   **/
   _.extend(Eye.main, Backbone.Events);
 
+
   /**
    * Loads the scripts for the modules used by the user session.
    * Then it initializes the widgets.
@@ -297,9 +312,11 @@
 
     // TODO: show a nice landing page if there are no widgets
     eMain.empty();
-    
+
     // For each widget used by the current user, we need to load its module.
-    var scripts = USER.widgets.map(function(widget){ return Eye[widget.module].main; });
+    var scripts = USER.widgets.map(function(widget){ 
+      return Eye[widget.module].main; 
+    });
 
     // After loading the modules, we need to initialize and render the widgets.
     require.apply(this, scripts.concat(function(){
@@ -315,6 +332,7 @@
       module.stylesheet && $('head').append($("<link rel='stylesheet' href='" + module.stylesheet + "'>"));
     });
   }
+
 
   /**
    * This is executed only once, at page load.
@@ -341,6 +359,7 @@
       });
     });
 
+    // Load any modules that the current session uses and then run "setupSession"
     require.apply(this, _.map(MODULES, function(mod){
       return "/static/" + mod + "/manifest.js";
     }).concat(setupSession));

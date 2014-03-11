@@ -1,22 +1,42 @@
-.rss-settings h3 {
-  margin-bottom: 10px;
+// Color theme taken from http://www.colourlovers.com/palette/692385/Making_Coffee
+@link: #0CA5B0;
+@neutral: #A5B3AA;
+@error: #CC2222;
+@bg_dark: #4E3F30;
+@bg_light: #FEFEEB;
+@text_light: #F8F4E4;
+@text_dark: darken(@neutral, 50%);
+
+// The RSS widget settings dialog
+.rss-settings {
+
+  h3 {
+    margin-bottom: 10px;
+  }
+  
+  .rss-label {
+    display: block;
+    margin: 7px 0 3px;
+    
+    small {
+      color: @neutral;
+      font-size: 10px;
+      margin-left: 5px;
+    }
+  }
+  
+  .rss-input {
+    width: 300px;
+  }
+
+  .rss-options {
+    text-align: right;
+    margin-top: 10px;
+  }
 }
-.rss-settings .rss-label {
-  display: block;
-  margin: 7px 0 3px;
-}
-.rss-settings .rss-label small {
-  color: #a5b3aa;
-  font-size: 10px;
-  margin-left: 5px;
-}
-.rss-settings .rss-input {
-  width: 300px;
-}
-.rss-settings .rss-options {
-  text-align: right;
-  margin-top: 10px;
-}
+
+
+
 .rss-item {
   margin: 5px 0;
   padding-bottom: 5px;
@@ -25,24 +45,31 @@
 .rss-item:last-child {
   border-bottom: none;
 }
+
 .rss-item > a {
   float: left;
   display: inline-block;
   text-decoration: none;
 }
+
 .rss-item > a:visited {
   color: #99f;
   text-decoration: none;
 }
+
 .rss-item-meta {
   text-align: right;
   display: inline;
   float: right;
   max-width: 20%;
 }
+
 .rss-item > .rss-item-meta + a {
   max-width: 80%;
 }
+
+
+
 .rss-show-all {
   margin: 15px -10px -10px -10px;
   padding: 4px 0;
@@ -50,8 +77,9 @@
   cursor: pointer;
   text-align: center;
 }
+
 .rss-item-comments {
   font-size: 20px;
   text-decoration: none;
-  color: #a5b3aa;
+  color: @neutral;
 }

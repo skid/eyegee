@@ -1,6 +1,6 @@
 {
   "name": "eyegee",
-  "description": "A better alternative to iGoogle",
+  "description": "A cleaner alternative to iGoogle.",
   "tags": [
     "homepage",
     "dashboard",
@@ -32,5 +32,10 @@
   "scripts": {
     "test": "node tests/run.js"
   },
-  "readmeFilename": "README.md"
+  "readmeFilename": "README.md",
+  "devDependencies": {
+    "gulp": "~3.5.5",
+    "gulp-less": "~1.2.2",
+    "gulp-rename": "~1.2.0"
+  }
 }

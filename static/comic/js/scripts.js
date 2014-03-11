@@ -8,7 +8,7 @@
 <div class='rss-item clearfix'>\
   <% if(comments){ %>\
     <div class='rss-item-meta'>\
-      <a class='ion-chatbubble-working rss-item-comments' href='<%= comments %>' target='_blank' title='Comments'></a>\
+      <a class='rss-item-comments' href='<%= comments %>' target='_blank'>Comments</a>\
     </div>\
   <% } %>\
   <%= link %>\
