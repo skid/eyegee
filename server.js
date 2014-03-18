@@ -7,7 +7,7 @@ Error.stackTraceLimit = Infinity;
 SESSION_MAX_AGE       = 1000 * 60 * 60 * 24;
 
 var connect = require('connect');
-var crypto  = require('crypto');
+var utils   = require('./utils');
 var redis   = require('redis');
 var fs      = require('fs');
 var _       = require('underscore');
@@ -37,6 +37,7 @@ app.use('/static', function(req, res, next){
 });
 
 app.use('/', connect.cookieParser());
+app.use('/', connect.json({ limit: '100kb' }));
 app.use('/', connect.urlencoded({ limit: '100kb' }));
 app.use('/', connect.cookieSession({ secret: "kirintormageslikesecrets", cookie: { maxAge: SESSION_MAX_AGE } }));
 
@@ -48,7 +49,7 @@ app.use('/', function(req, res, next){
 
     // No cookie: this is first time visit. Generate a new cookie.
     if( !user ) {
-      req.session.uid = guid();
+      req.session.uid = utils.guid();
       req.user = { widgets: [] };
       next();
     }
@@ -94,7 +95,7 @@ app.use('/signin', function(req, res, next){
 
     user = user && JSON.parse(user);
 
-    if(!user || !comparePasswords(req.body.password, user.password)) {
+    if(!user || !utils.comparePasswords(req.body.password, user.password)) {
       res.body = { status: "error", statusCode: 401, message: "Email/Password combination does not exist" };
     }
     else {
@@ -118,7 +119,7 @@ app.use("/register", function(req, res, next){
   // to the anonymous session object. The middleware layer that saves the session
   // will push this to the database therefore creating a new user account.
   if(req.body.email && req.body.password) {
-    req.user.password = hashPassword(req.body.password);
+    req.user.password = utils.hashPassword(req.body.password);
     req.user.email = req.body.email;
     res.body = { status: 'ok', user: _.clone(req.user) };
 
@@ -224,38 +225,3 @@ app.use('/', function(req, res, next){
 
 app.listen(3001);
 console.log("Server running on port 3001");
-
-
-/**
- * Helper functions.
- * These are only used in the server.js file.
-**/
-
-// Generates a random 4 digit hex string
-function s4() {
-  return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
-}
-
-// Generates a pretty unique guid.
-function guid() {
-  return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
-}
-
-// Hashes (sha1) a password with a randomly generated salt.
-function hashPassword(password){
-  var hash, salt = guid();
-
-  hash = crypto.createHash("sha1");
-  hash.update(salt + password);
-
-  return salt + ":" + hash.digest("hex");
-}
-
-// Compares a password to a hashed and salted password
-function comparePasswords(raw, salted){
-  var salthash = salted.split(":");
-  var hash = crypto.createHash("sha1");
-  
-  hash.update(salthash[0] + raw);
-  return hash.digest("hex") === salthash[1];
-}

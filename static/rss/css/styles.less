@@ -16,7 +16,7 @@
   
   .rss-label {
     display: block;
-    margin: 7px 0 3px;
+    margin: 7px 0 3px 4px;
     
     small {
       color: @neutral;
@@ -25,12 +25,37 @@
     }
   }
   
-  .rss-input {
-    width: 300px;
-  }
+  .rss-sources {
+    margin-bottom: 5px;
+    width: 335px;
 
+    .rss-input {
+      width: 300px;
+    }
+    
+    .rss-input[disabled] {
+      background-color: transparent;
+    }
+    
+    // A span that imitates a disabled input field
+    .rss-input-fake {
+      width: 300px;
+      display: inline-block;
+      background-color: transparent;
+      color: @text_dark;
+      padding: 4px;
+      border: solid 1px #ddd;
+      font-size: 13px;
+    }
+    
+    .rss-source-remove, .rss-source-add {
+      font-size: 18px;
+      text-decoration: none;
+      padding: 0 3px;
+    }
+  }
+  
   .rss-options {
-    text-align: right;
     margin-top: 10px;
   }
 }

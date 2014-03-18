@@ -43,10 +43,11 @@
     var scroll = $(window).scrollTop();
     var width  = $(window).width();
     var size   = { w: target.outerWidth(), h: target.outerHeight() };
-    var css    = { position: "absolute", left: "", right: "", bottom: "" , top: Math.round(offset.top - scroll + size.h) };
+    var css    = {  
+      right: Math.round(width - offset.left - size.w), 
+      top: Math.round(offset.top - scroll + size.h),
+    };
 
-    css.right = Math.round(width - offset.left - size.w);
-    
     if(target){
       // The "target" is a button that invoked the modal
       // We want to style it to look like it's part of the modal.
@@ -69,8 +70,7 @@
       el.__invoker = null;
     }
   }
-  
-  
+
   /**
    * Serves as a basic abstract class for widgets.
    * Modules should extend this to make their own widgets.
@@ -152,7 +152,7 @@
           }
         });
       },
-      
+
       /**
        * Private method that sends the user's email and password
        * for registration or login.
@@ -197,18 +197,20 @@
        * The widget settings dialog depends on the module the widget belongs to.
       **/
       renderWidgetSettings: function(module, widget){
-        
         eWidgetModal.html(tWidgetSettings({ 
+          // The module name is used in the main template
           module: module.module, 
-          dialog: module.dialog, 
-          extra: widget ? widget.config.id : "" 
+          // The we render the specific module dialog template which
+          // in turn gets inserted as HTML inside the main template
+          dialog: module.dialog({ widget: widget }),
+          // We also pass the widget id as an extra parameter
+          extra: widget ? widget.config.id : ""
         }));
 
-        // Send a signal to existing widgets
-        // that the widget dialog has been rendered
-        if(widget) {
-          this.trigger('widget:' + widget.config.id + ':settings');
-        }
+        // Send a signal to existing widgets that the widget dialog has been rendered
+        widget && _.defer(function(){
+          Eye.main.trigger('widget:' + widget.config.id + ':settings');
+        });
 
         // Hide the widget settings modal once the widget is ready.
         // The specific widget module needs to fire a "widget:ready" events.
@@ -226,6 +228,49 @@
         eWidgetModal.html( _.without(_.keys(Eye), 'main').sort().map(function(k){ return Eye[k]; }).map(tWidgetIcon).join("") );
       },
       
+      /**
+       * Loads all resources of a particular module
+      **/
+      loadModule: function(moduleName, callback){
+        // TODO: Add a loading indicator on the module icon
+        var module = Eye[moduleName];
+        var count = 2;
+
+        // This prevent the modules from being loaded multiple times
+        // but at the same time executes all callbacks sent to loadModule.
+        module._cbq || (module._cbq = []);
+        module._cbq.push(callback);
+
+        if(module._isLoading) {
+          return; 
+        }
+
+        module._isLoading = true;
+
+        function done(){
+          if(--count === 0) {
+            // We actually don't need this, since the "widget method" of the module
+            // will get replaced once the module is loaded, so "loadModule" will never be called again.
+            module._isLoading = false;
+            module._cbq.forEach(function(callback){
+              callback.call(module);
+            });
+          }
+        }
+
+        $.ajax(module.dialog)
+        .done(function(html){ 
+          module.dialog = _.template(html); 
+        })
+        .fail(function(){
+          alert("TODO: Handle this error"); // TODO: Handle this error
+        })
+        .always(done);
+
+        require(module.main, module.stylesheet, done);
+      },
+
+
       /**
        * UI METHOD: This method is invoked when a user clicks somewhere
        *
@@ -254,7 +299,6 @@
           }
         });
       },
-
 
       /**
        * UI METHOD: This method is invoked when a user clicks somewhere
@@ -313,26 +357,14 @@
     // TODO: show a nice landing page if there are no widgets
     eMain.empty();
 
-    // For each widget used by the current user, we need to load its module.
-    var scripts = USER.widgets.map(function(widget){ 
-      return Eye[widget.module].main; 
-    });
-
-    // After loading the modules, we need to initialize and render the widgets.
-    require.apply(this, scripts.concat(function(){
-      USER.widgets.forEach(function(widget){
-        // This will initialize the widget and render it
+    // For each widget used by the current user, 
+    // we need to load its module and then show the widget.
+    USER.widgets.forEach(function(widget){
+      Eye.main.loadModule(widget.module, function(){
         Eye[widget.module].setWidget(widget);
       });
-    }));
-
-    // Now load any stylesheets too
-    USER.widgets.forEach(function(widget){ 
-      var module = Eye[widget.module]; 
-      module.stylesheet && $('head').append($("<link rel='stylesheet' href='" + module.stylesheet + "'>"));
     });
   }
-
 
   /**
    * This is executed only once, at page load.

@@ -14,10 +14,11 @@ var CACHE_TTL = 1000 * 60 * 10;
 **/
 app.use('/widget', function(req, res, next){
   // RSS Widget parameters
-  var source = req.body.source;
-  var count  = req.body.count;
-  var id     = parseInt(req.body.id);
-  
+  var sources = req.body.sources;
+  var title   = req.body.title;
+  var count   = req.body.count;
+  var id      = parseInt(req.body.id);
+
   // Check if the widget already exists
   var widgets = req.user.widgets;
   var exists  = id && _.find(widgets, function(w){ return id === w.id; });
@@ -25,17 +26,19 @@ app.use('/widget', function(req, res, next){
   // If exists, update it
   if(exists) {
     exists.count = count;
-    exists.source = source;
+    exists.sources = sources;
+    exists.title = (title || exists.title);
   }
 
   // If not push make a new one
   else {
     id = (widgets.length && _.max(_.pluck(widgets, 'id'))) + 1;
     req.user.widgets.push({
-      id: id,
-      source: source,
-      count: count,
-      module: 'rss'
+      id:      id,
+      sources: sources,
+      title:   title,
+      count:   count,
+      module:  'rss'
     });
   }
 

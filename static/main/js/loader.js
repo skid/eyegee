@@ -20,16 +20,24 @@
   var loading = {};
   
   function load(src, fn){
-    var script;
+    var script, link;
 
     if(src in loading) {
       loading[src].push(fn);
     }
     else {
-      script = document.createElement('script');
-      script.type = 'text/javascript';
-      script.async = true;
-      script.src = src;
+      if( src.substr(-4) === '.css' ) {
+        script = document.createElement('link');
+        script.rel = "stylesheet";
+        script.async = true;
+        script.href = src;
+      }
+      else {
+        script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.async = true;
+        script.src = src;
+      }
       script.onload = script.onreadystatechange = function() {
         var callbacks = loading[src], fn;
         delete loading[src];
@@ -43,6 +51,7 @@
         }
         alert("A server error happened."); 
       };
+
       loading[src] = [fn];
       document.head.appendChild(script);
     }

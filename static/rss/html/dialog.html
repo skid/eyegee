@@ -2,16 +2,25 @@
   <h3>RSS Widget Options</h3>
 
   <div class="error-message"></div>
-  
+
   <span class="rss-label">Widget Title</span>
-  <input class="rss-title rss-input" type="text" placeholder="Optional...">
+  <input class="rss-title rss-input" id="rss-widget-title" type="text" placeholder="Optional...">
+
+  <span class="rss-label">Sources <small>URLs not pointing to feeds will be resolved.</small></span>
   
-  <span class="rss-label">Sources <small>If you give us a website URL, we'll look for RSS feeds.</small></span>
+  <% if(widget) {
+    _.each(widget.config.sources, function(src, index){ %>
+      <div class="rss-sources">
+        <input class="rss-source-existing rss-input" type="text" placeholder="RSS Feed / Site URL" disabled>
+        <a class="ion-trash-b rss-source-remove" href="javascript:;"></a>
+      </div>
+  <% }); } %>
+
   <div class="rss-sources">
-    <input class="rss-source rss-input" type="text" placeholder="RSS Feed / Site URL">
+    <input class="rss-source-new rss-input" id="rss-source-new" type="text" placeholder="RSS Feed / Site URL">
+    <a class="ion-plus-round rss-source-add" href="javascript:;"></a>
   </div>
-  
-  
+
   <div class="rss-options">
     Show &nbsp;
     <select id="rss-item-count">
