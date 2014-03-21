@@ -9,9 +9,9 @@
   <span class="rss-label">Sources <small>URLs not pointing to feeds will be resolved.</small></span>
   
   <% if(widget) {
-    _.each(widget.config.sources, function(src, index){ %>
+    _.each(widget.config.sources, function(url, index){ %>
       <div class="rss-sources">
-        <input class="rss-source-existing rss-input" type="text" placeholder="RSS Feed / Site URL" disabled>
+        <input class="rss-source-existing rss-input" type="text" placeholder="RSS Feed / Site URL"  data-url='<%= url %>' disabled >
         <a class="ion-trash-b rss-source-remove" href="javascript:;"></a>
       </div>
   <% }); } %>

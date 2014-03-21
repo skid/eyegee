@@ -29,6 +29,9 @@
   border: solid 1px #ddd;
   font-size: 13px;
 }
+.rss-settings .rss-sources .rss-input-fake span {
+  color: #cc4444;
+}
 .rss-settings .rss-sources .rss-source-remove,
 .rss-settings .rss-sources .rss-source-add {
   font-size: 18px;
@@ -57,12 +60,12 @@
 }
 .rss-item-meta {
   text-align: right;
-  display: inline;
+  display: inline-block;
   float: right;
-  max-width: 20%;
+  width: 20px;
 }
 .rss-item > .rss-item-meta + a {
-  max-width: 80%;
+  width: calc(100% - 22px);
 }
 .rss-show-all {
   margin: 15px -10px -10px -10px;

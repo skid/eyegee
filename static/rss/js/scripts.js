@@ -18,13 +18,13 @@
 
   var tSource = _.template("\
 <div class='rss-sources'>\
-  <input class='rss-source-existing rss-input' type='text' placeholder='RSS Feed / Site URL' disabled>\
+  <input class='rss-source-existing rss-input' type='text' placeholder='RSS Feed / Site URL' data-url='<%= url %>' disabled>\
   <a class='ion-trash-b rss-source-remove' href='javascript:;'></a>\
 </div>");
 
   var tSourceFake = _.template("\
 <div class='rss-sources'>\
-  <span class='rss-input-fake'><%= url %></span>\
+  <span class='rss-input-fake'><%= url %><span> &nbsp; <%= message %></span></span>\
   <a class='ion-trash-b rss-source-remove' href='javascript:;'></a>\
 </div>");
 
@@ -60,22 +60,37 @@
     prepare: function(callback){
       var self  = this;
       var count = this.config.sources.length;
+      var items = [];
+      var attributes = {
+        title: this.config.title || (count > 1 ? "Multiple Feeds" : ""),
+        link: (count > 1 ? null : "")
+      };
+      
+      function next(err){
+        if(err) {
+          return callback(err);
+        }
 
+        _.each(items, function(item){
+          item.updated = (new Date(item.updated)).getTime() || 9999999999999;
+        });
+
+        self.items = items.sort(function(a, b){ return a.updated === b.updated ? 0 : a.updated > b.updated ? -1 : 1});
+        self.attributes = attributes;
+        callback();
+      }
+      
       this.config.sources.forEach(function(source){
         self.getFeed(source, function(err, feed){
           if(err) {
             alert("An error happened with widget " + (self.config.title || self.config.id) + ".\n(" + err.message + ")");
           }
           else {
-            self.items = feed.items;
-            self.attributes = {
-              title: feed.title,
-              description: feed.description,
-              link: feed.link
-            }
+            items = items.concat(feed.items);
+            attributes.title || (attributes.title = feed.title);
+            attributes.link === null && (attributes.link = feed.link);
           }
-
-          --count || callback(err);
+          --count || next(err);
         });
       });
     },
@@ -195,6 +210,9 @@
     // This line is mandatory for all implementations
     Eye.main.renderWidgetSettings(this, widget);
 
+    // Will update the existing source input with theur values.
+    updateSourceURLS();
+
     // For new widgets, the widget argument is not passed
     if(widget) {
       var config = widget.config;
@@ -216,7 +234,7 @@
   }
 
 
-  /**
+  /** 
    * UI METHOD: This method is invoked when a user clicks somewhere
    * Takes care of creating/modifying a widget once the widget settings dialog is submitted.
   **/
@@ -225,67 +243,88 @@
     // If it's a NEW widget, the "widgetId" argument will be undefined 
     // and main.getWidget will return a new instance.
     // Existing RSS widgets will have the "_rss" property defined
+    var config;
     var widget = Eye.main.getWidget(widgetId);
-    var id = widget._rss ? widget.config.id : null;
+    var id     = widget._rss ? widget.config.id : null;
 
-    // TODO: Validate the input values
-    var count = $('#rss-item-count').val();
-    var title = $('.rss-title').val();
     var sources = _.compact($('.rss-source-existing').map(function(index, input){ return input.value.trim(); }).toArray());
-
+    var count   = $('#rss-item-count').val();
+    var title   = $('.rss-title').val();
+    
+    // TODO: Better validation
     if(sources.length === 0) {
-      return alert("Provide at least one URL");
+      alert("Provide at least one valid URL");
+      return;
     }
-
-    // The new widget configuration
-    var config = {
-      module: 'rss', 
-      count: count, 
-      title: title, 
-      sources: sources,
-      id: id 
-    };
 
     // Before saving anything, we want to check the source URLs for validity  
     // and discover any RSS feeds from non-rss URLs.
-    Eye.rss.discover(_.difference(sources, id === null ? [] : widget.config.sources), function(results){
-      $('.rss-source-existing').each(function(){
-        var self = $(this);
-        var result = results[ self.val() ];
-        var html;
+    Eye.rss.discover(sources, function(results){
+      
+      // If all the sources are valid RSS links, we proceed with saving.
+      if(_.all(_.values(results), function(result){ return result === 0; })) {
+        config = { module: 'rss', count: count, title: title, sources: sources, id: id };
+        $.ajax({
+          url: '/module/rss/widget',
+          type: 'post', 
+          data: JSON.stringify(config),
+          dataType: 'json',
+          contentType: 'application/json; charset=utf-8'
+        }).done(function(response){
+          // The response should return a new ID for new widgets 
+          // or the existing ID for old widgets. IDs are unique per user per widget.
+          if (response.status === 'ok'){
+            Eye.rss.setWidget(_.extend(config, { id: response.id }));
+          }
+        });
+      }
+
+      // Otherwise we notify the user that some of the sources were replaced/invalidated.
+      else {
+        $('.rss-source-existing').each(function(){
+          var self = $(this);
+          var result = results[ self.val() ];
+          var html;
+
+          // A valid RSS feed, leave it intact.
+          if(result === 0) {
+            return;
+          }
+          // An url that linked to one or more feeds
+          else if( _.isObject(result) ) {
+            var inputs = _.map(result, function(result, url){
+              return result === 0 ? tSource({ url: url }) : tSourceFake({ url: url, message: result });
+            }).join("");
+            self.parent().replaceWith(inputs);
+          }
+          // An invalid feed url
+          else {
+            self.parent().replaceWith(tSourceFake({ url: self.val(), message: result }));
+          }
+        });
+        // TODO: Inform the user that the URLS have been resolved.
         
-        // A valid RSS feed, leave it intact.
-        if(result === 0) {
-          return;
-        }
-        // An url that linked to one or more feeds
-        else if( _.isObject(result) ) {
-          self.parent().replaceWith(_.map(result, function(status, source){
-            return status === 0 ? tSourceFake({ url: source }) : "";
-          }).join(""));
-        }
-        // An invalid feed url
-        else {
-          self.parent().replaceWith(tSourceFake({ url: self.val() + " (" + result + ")" }));
-        }
-      });
+        updateSourceURLS(); // Will update the existing source input with their values.
+      }
 
-      return;
-      $.ajax({
-        url: '/module/rss/widget',
-        type: 'post', 
-        data: JSON.stringify(config),
-        dataType: 'json',
-        context: this,
-        contentType: 'application/json; charset=utf-8'
-      }).done(function(response){
-        // The response should return a new ID for new widgets 
-        // or the existing ID for old widgets. IDs are unique per user per widget.
-        if (response.status === 'ok'){
-          this.setWidget(_.extend(config, { id: response.id }));
-        }
-      });
-
+    });    
+  }
+  
+  
+  
+  /**
+   *  Helper functions
+   *
+   *    the following functions don't really belong anywhere
+  **/
+  
+  // We can't put a value for input elements inside their "value" attribute
+  // when we generate them as HTML and append to the DOM.
+  // So whenever we create those, we put the value in a "data-url" property
+  // and call this function which will change their value attribute later.
+  function updateSourceURLS(){
+    _.defer(function(){
+      $('.rss-source-existing').each(function(){ $(this).val($(this).data('url')); });
     });
   }
 
@@ -318,8 +357,8 @@
     var self = $(this), input = self.prev(), parent = self.parent();
     // Only add a new source input if we have a value in the current one.
     if( input.val() ) {
-      parent.before( tSource({}) );
-      parent.prev().find('.rss-source-existing').val( input.val() );
+      parent.before( tSource({ url: input.val() }) );
+      updateSourceURLS();
       input.val("").focus();
     }
   })
@@ -388,7 +427,7 @@
     feed.language = channel.find('language:first').text();
     feed.updated = channel.find('lastBuildDate:first').text();
     feed.items = new Array();
-  
+    
     $('item', xml).each(function() {
       var item = $(this);
       feed.items.push({
@@ -397,10 +436,9 @@
         description: item.find('description').eq(0).text(),
         updated: item.find('pubDate').eq(0).text(),
         id: item.find('guid').eq(0).text(),
-        comments: item.find('comments').eq(0).text()
-      });
+        comments: item.find('comments').eq(0).text(),
+      });      
     });
-
     return feed;
   }
   

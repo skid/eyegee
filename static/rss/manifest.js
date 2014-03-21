@@ -21,8 +21,8 @@
      * Once that is done, we can call Eye.rss.widget() again.
     **/
     widget: function(e, widget){
-      Eye.main.loadModule('rss', function(){ 
-        this.widget(e, widget); 
+      Eye.main.loadModule('rss', function(){
+        this.widget(e, widget);
       });
     }
   };

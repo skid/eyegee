@@ -5,6 +5,7 @@
 @bg_dark: #4E3F30;
 @bg_light: #FEFEEB;
 @text_light: #F8F4E4;
+@text_error: #CC4444;
 @text_dark: darken(@neutral, 50%);
 
 // The RSS widget settings dialog
@@ -46,6 +47,10 @@
       padding: 4px;
       border: solid 1px #ddd;
       font-size: 13px;
+      
+      span {
+        color: @text_error;
+      }
     }
     
     .rss-source-remove, .rss-source-add {
@@ -84,13 +89,13 @@
 
 .rss-item-meta {
   text-align: right;
-  display: inline;
+  display: inline-block;
   float: right;
-  max-width: 20%;
+  width: 20px;
 }
 
 .rss-item > .rss-item-meta + a {
-  max-width: 80%;
+  width: ~"calc(100% - 22px)";
 }
 
 
