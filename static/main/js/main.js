@@ -1,7 +1,7 @@
 (function(){
   /* Cache for existing widget instances */
   var Cache = {};
-  
+
   /* Templates */
   var tWidget         = _.template( $('#widget-template').html() );
   var tWidgetIcon     = _.template( $('#widget-icon-template').html() );
@@ -57,7 +57,7 @@
     }
     el.css(css).addClass('shown');
   }
-
+  
   /**
    * Hides a specific modal and sends a signal that the modal 
    * in question has been hidden.
@@ -72,17 +72,163 @@
   }
 
   /**
+   * Simple drag-drop functionality.
+   * It's implemented into separate functions since it won't be used elsewhere.
+  **/
+  var placeholder = $("<div class='drag-placeholder'></div>");
+  var draggable   = null;
+  var offset      = null;
+  var mouse       = null;
+  var before      = null;
+  var wmap        = {};
+  var positions   = {};
+  var lefts       = [];
+  
+  // Returns the positions of all widgets in a data structure easy for searching
+  function calcPositions(){
+    var scrollTop = $(window).scrollTop();
+    positions = {};
+    
+    $('.column').each(function(){
+      var column = $(this);
+      var left = parseInt(column.offset().left, 10) + column.width();
+
+      positions[left] = [];
+      column.children('.widget-container').each(function(){
+        if(draggable && draggable.element.is(this)) {
+          return;
+        }
+
+        var self = $(this);
+        var top  = Math.round(parseInt(self.offset().top) + self.outerHeight() / 2);
+        positions[left].push(top);
+        wmap["" + left + top] = Eye.main.getWidget(self.data('id'));
+      });
+      positions[left].sort(function(a, b){ return a > b ? 1 : a < b ? -1 : 0; });
+    });
+
+    lefts = _.map(_.keys(positions), function(left){ return parseInt(left); }).sort(function(a, b){ return a > b ? 1 : a < b ? -1 : 0; });
+  }
+
+  // Executed when dragging begins
+  function drag(widgetId, e){
+    var width, height;
+
+    draggable = Eye.main.getWidget(widgetId);
+    width = draggable.element.outerWidth();
+    height = draggable.element.height();
+    offset = draggable.element.position();
+    mouse = { y: e.pageY, x: e.pageX };
+
+    draggable.element.before(placeholder.css('height', height));
+    draggable.element.css({ width: width, height: height, top: offset.top, left: offset.left });
+    draggable.element.addClass('dragging');
+
+    calcPositions();
+    $(document).on('mousemove', dragStep);
+    $(document).on('mouseup', drop);
+  }
+
+  // Executed when dragging ends
+  function drop(e){
+    var oldcol = draggable.element.parent();
+    var oldpos = oldcol.children().not(placeholder).index(draggable.element);
+
+    draggable.element.removeClass('dragging').css({ width: "", height: "", top: "", left: "" })
+    placeholder.after(draggable.element).detach();
+    
+    var newcol = draggable.element.parent();
+    var newpos = newcol.children().not(placeholder).index(draggable.element);
+
+    if( !oldcol.is(newcol) || oldpos !== newpos ) {
+      draggable.config.column = $('.column').index(newcol);
+      draggable.save({ id: draggable.id, column: draggable.config.column, position: newpos });
+    }
+
+    draggable = offset = mouse = before = null;
+    positions = wmap = {};
+    lefts = [];
+    
+    $(document).off('mousemove', dragStep);
+    $(document).off('mouseup', drop);
+  }
+  
+  
+  // Executed on each mousemove event
+  function dragStep(e){
+    var deltaX = mouse.x - e.pageX; 
+    var deltaY = mouse.y - e.pageY; 
+    var focused, left, top, i = 0, j = 0;
+
+    while(left = lefts[i++]){
+      if(e.pageX >= left) continue;
+      
+      while(top = positions[left][j++]) {
+        if(e.pageY < top) break;
+      }
+      break;
+    }
+    
+    mouse  = { x: mouse.x - deltaX, y: mouse.y - deltaY };
+    offset = { top: offset.top - deltaY, left: offset.left - deltaX };
+    draggable.element.css(offset);
+    
+    if(focused = wmap["" + left + top]) {
+      if(before === focused) {
+        return;
+      }
+      before = focused;
+      before.element.before(placeholder);
+      calcPositions();
+    }
+    else {
+      focused = $('.column').eq(lefts.indexOf(left));
+      if(focused.is(before)) {
+        return;
+      }
+      before = focused;
+      before.append(placeholder);
+      calcPositions();
+    }
+  }
+  
+
+  /**
    * Serves as a basic abstract class for widgets.
    * Modules should extend this to make their own widgets.
   **/
   function Widget(id){
     this.id      = id;
     this.element = $(tWidget({ id: this.id }));
-
     this.head    = this.element.find('.widget-head');
     this.title   = this.element.find('.widget-title');
     this.content = this.element.find('.widget-content');
+    this.config  = { column: 0 }; // New widgets are automatically added to column 0
   };
+    
+  Widget.prototype.setConfig = function(config){
+    _.extend(this.config, config);
+  }
+
+  Widget.prototype.save = function(config, callback){
+    config.column = this.config.column;
+
+    $.ajax({
+      url: '/widget',
+      type: 'post', 
+      data: JSON.stringify(config),
+      dataType: 'json',
+      contentType: 'application/json; charset=utf-8'
+    }).done(function(response){
+      if(response.status === 'ok'){
+        callback && callback(null, response.id);
+      }
+      else {
+        alert("Handle this error");
+      }
+    });
+  }
+
 
   /** 
    * EyeGee module namespace.
@@ -110,12 +256,15 @@
         return widget;
       },
       
+
       /**
-       * Appends a widget to the body
+       * Appends a widget to the correct column.
       **/
       appendWidget: function(widget){
-        eMain.append(widget.element);
+        $('.column').eq(widget.config.column).append(widget.element);
       },
+
+
 
       /**
        * Registers the user
@@ -131,7 +280,8 @@
 
         this._setUser('/register', email, pass);
       },
-      
+
+
       /**
        * Signs in the user
       **/
@@ -141,7 +291,8 @@
 
         this._setUser('/signin', email, pass);
       },
-      
+
+
       /**
        * Signs out the user
       **/
@@ -152,6 +303,7 @@
           }
         });
       },
+
 
       /**
        * Private method that sends the user's email and password
@@ -171,26 +323,24 @@
         $.ajax(url, {
           type: "post",
           dataType: "json",
-          data: { 
-            email: email, 
-            password: pass 
-          },
-          context: this,
-          success: function(response) {
-            delete this.waiting.register;
-            // Set the global user variable
-            USER = response.user;
-            // This setup all the widgets
-            setupSession();
-            this.trigger('user:ready');
-          },
-          error: function(xhr, status, message){
-            delete this.waiting.register;
-            this.off("user:ready");
-            alert(message);
-          }
+          data: { email: email, password: pass },
+          context: this
+        })
+        .done(function(response) {
+          delete this.waiting.register;
+          // Set the global user variable
+          USER = response.user;
+          // This will setup all the widgets
+          setupSession(true);
+          this.trigger('user:ready');
+        })
+        .fail(function(xhr, status, message){
+          delete this.waiting.register;
+          this.off("user:ready");
+          alert(message);
         });
       },
+
 
       /**
        * Renders the widget settings dialog in the widget window.
@@ -219,6 +369,7 @@
         });
       },
 
+
       /**
        * Renders the widget picker dialog in the widget window.
        * The widget picker dialog depends on the avaiable modules.
@@ -227,6 +378,7 @@
         // Order the modules (except main) in the palette alphabetically and then render the manifest
         eWidgetModal.html( _.without(_.keys(Eye), 'main').sort().map(function(k){ return Eye[k]; }).map(tWidgetIcon).join("") );
       },
+
       
       /**
        * Loads all resources of a particular module
@@ -235,7 +387,7 @@
         // TODO: Add a loading indicator on the module icon
         var module = Eye[moduleName];
         var count = 2;
-
+        
         // This prevent the modules from being loaded multiple times
         // but at the same time executes all callbacks sent to loadModule.
         module._cbq || (module._cbq = []);
@@ -245,12 +397,17 @@
           return; 
         }
 
+        if(module._isLoaded) {
+          return callback.call(module);
+        }
+
         module._isLoading = true;
 
         function done(){
           if(--count === 0) {
             // We actually don't need this, since the "widget method" of the module
             // will get replaced once the module is loaded, so "loadModule" will never be called again.
+            module._isLoaded = true;
             module._isLoading = false;
             module._cbq.forEach(function(callback){
               callback.call(module);
@@ -284,21 +441,20 @@
           return;
         }
 
-        $.ajax("/remove_widget", {
-          type: 'post',
-          dataType: 'json',
-          data: { id: widget.id },
-          context: this,
-          success: function(response){
-            widget.element.remove();
-            delete Cache[widgetId];
-            USER.widgets = _.without(USER.widgets, _.findWhere(USER.widgets, { id: parseInt(widgetId, 10) }));
-          },
-          error: function(xhr, status, message){
-            alert(message);
-          }
+        $.ajax("/remove_widget", { type: 'post', dataType: 'json', data: { id: widget.id }})
+        .done(function(response){
+          widget.element.remove();
+          delete Cache[widgetId];
+          USER.widgets = _.without(USER.widgets, _.findWhere(USER.widgets, { id: parseInt(widgetId, 10) }));
+        })
+        .fail(function(xhr, status, message){
+          alert(message);
+        })
+        .always(function(){
+          hideModal(eWidgetModal)
         });
       },
+
 
       /**
        * UI METHOD: This method is invoked when a user clicks somewhere
@@ -320,7 +476,8 @@
 
         showModal(eWidgetModal, $(e.target));
       },
-      
+
+
       /**
        * UI METHOD: This method is invoked when a user clicks somewhere
        *
@@ -337,12 +494,11 @@
   **/
   _.extend(Eye.main, Backbone.Events);
 
-
   /**
    * Loads the scripts for the modules used by the user session.
    * Then it initializes the widgets.
   **/
-  function setupSession(){
+  function setupSession(emptyCache){
     if(window.USER && USER.email) {
       eSessionButton.html(USER.email);
       eLoginButton.html("Sign Out").attr('data-method', "userSignout");
@@ -355,13 +511,29 @@
     }
 
     // TODO: show a nice landing page if there are no widgets
+
+    // Empty the main window and cache
     eMain.empty();
+
+    if(emptyCache) {
+      Cache = {};
+    }
+    else {
+      _.each(Cache, function(widget){ 
+        widget._rendered = false; 
+      });
+    }
+    
+    // Add the columns
+    for(var i = 0; i < (USER.columns || 3); ++i) {
+      eMain.append("<div class='column column-" + (USER.columns || 3) + "'></div>");
+    }
 
     // For each widget used by the current user, 
     // we need to load its module and then show the widget.
-    USER.widgets.forEach(function(widget){
-      Eye.main.loadModule(widget.module, function(){
-        Eye[widget.module].setWidget(widget);
+    USER.widgets.forEach(function(config){
+      Eye.main.loadModule(config.module, function(){
+        Eye[config.module].setWidget(config);
       });
     });
   }
@@ -374,7 +546,8 @@
   **/
   window.init = function init(){
     // Initialize the button's actions
-    $('body').delegate('[control]', 'click', function(e){
+    $('body')
+    .delegate('[control]', 'click', function(e){
       var module = Eye[ $(this).data('module') ];
       var method = $(this).data('method');
       var extra  = $(this).data('extra');
@@ -385,10 +558,15 @@
     });
 
     // Close modal windows when you click outside them
-    $(document).on('mousedown', function(e){
+    $(document)
+    .on('mousedown', function(e){
       modals.forEach(function(modal){
         e.originalEvent._currentModal !== modal && hideModal(modal);
       });
+
+      if(e.button === 0 && $(e.target).is('.widget-head')) {
+        drag($(e.target).parent().data('id'), e);
+      }
     });
 
     // Load any modules that the current session uses and then run "setupSession"

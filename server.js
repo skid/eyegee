@@ -12,7 +12,15 @@ var redis   = require('redis');
 var fs      = require('fs');
 var _       = require('underscore');
 
-global.db      = redis.createClient();
+function redis_connect(){
+  global.db      = redis.createClient();
+  global.db.on('error', function(err){
+    process.stderr.write(err.message + "\n");
+    setTimeout(redis_connect, 5000);
+  });
+}
+redis_connect();
+
 global.modules = { 
   rss: require('./rss'), 
   comic: require('./comic') 
@@ -50,7 +58,8 @@ app.use('/', function(req, res, next){
     // No cookie: this is first time visit. Generate a new cookie.
     if( !user ) {
       req.session.uid = utils.guid();
-      req.user = { widgets: [] };
+      // User default settings
+      req.user = { widgets: [], columns: 3 };
       next();
     }
     
@@ -59,7 +68,7 @@ app.use('/', function(req, res, next){
       req.user = JSON.parse( user.substr(10) );
       next();
     }
-    
+
     // Registered user - get his data from the database
     else if( user.indexOf('user:') === 0 ){
       db.get('user:' + user.substr(5), function(err, user){
@@ -156,6 +165,53 @@ app.use('/state.js', function(req, res, next){
   res.end("MODULES=" + JSON.stringify(_.keys(modules)) + ";USER=" + JSON.stringify(user) + ";" );
 });
 
+// Widget management function
+app.use('/widget', function(req, res, next){  
+  var config = req.body;
+  var id = parseInt(config.id);
+
+  // Check if the widget already exists
+  var widgets  = req.user.widgets;
+  var exists   = id && _.find(widgets, function(w){ return id === w.id; });
+  var position = config.position;
+  
+  delete config.position;
+  if(exists) {
+    // When the position key is sent, we want to reorder the widgets around
+    // so that the widget keeps its position respective to the other widgets in the same column.
+    if(position !== undefined) {
+      var widget, i, widgetsBefore = 0;
+
+      for(i = 0; i < req.user.widgets.length; ++i){
+        widget = req.user.widgets[i];
+
+        if(widget.column !== exists.column) {
+          continue;
+        }
+        else if(widget === exists) {
+          break;
+        }
+        widgetsBefore += 1;
+
+        if(widgetsBefore > position) {
+          req.user.widgets.splice(req.user.widgets.indexOf(exists), 1);
+          req.user.widgets.splice(i, 0, exists);
+          break;
+        }
+      }
+    }
+
+    _.extend(exists, config);    
+  }
+  else {
+    id = config.id = (widgets.length && _.max(_.pluck(widgets, 'id'))) + 1;
+    req.user.widgets.push(config);
+  }
+  
+  // Set the response body
+  res.body = { status: 'ok', id: id };
+  next();
+});
 
 // Proxy to modules
 app.use('/module', moduleProxy);

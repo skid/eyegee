@@ -65,7 +65,7 @@
         title: this.config.title || (count > 1 ? "Multiple Feeds" : ""),
         link: (count > 1 ? null : "")
       };
-      
+
       function next(err){
         if(err) {
           return callback(err);
@@ -167,23 +167,35 @@
       });
     });
   }
+  
+  // *****************************************************************
+  // The next 3 module methods are required by the Eye.main framework.
+  /**
+   *  Required methods
+   *
+   *    The next 3 module methods are required by the Eye.main framework
+   *    - setWidget() is called when a widget is initialized.
+   *    - widget() is called when the user clicks on the "addWidget" buton or the "settings" button on an individual widget.
+   *    - saveSettings() is called when the user clicks on the "OK" button in the widget settings dialog.
+  **/
+  
+  
 
   /**
-   * THE NEXT PART UPDATES THE WIDGET MODULE 
+   * Sets properties on a newly created widget or an existing one,
+   * then calls the render() method.
   **/
-
-  // Uses the data argument to either create a new widget
-  // or modify an existing one (if a valid id is provided)
   Eye.rss.setWidget = function(config){
     var widget = Eye.main.getWidget(config.id);
     
+    widget.setConfig(config);
+
     // This is done only once for each widget instance
     // The RSSMixin has a truthy _rss property
     if(!widget._rss) {
       _.extend(widget, RSSMixin);
       widget.element.addClass('rss');
     }
-    widget.config = config;
 
     // We append the widget immiediately to the body.
     // It will show a loading gif until we render real content in it.
@@ -192,7 +204,6 @@
       widget._rendered = true;
     }
     
-
     widget.prepare(function(err){
       if( !err ) {
         widget.render();
@@ -210,7 +221,7 @@
     // This line is mandatory for all implementations
     Eye.main.renderWidgetSettings(this, widget);
 
-    // Will update the existing source input with theur values.
+    // Will update the existing source input with their values.
     updateSourceURLS();
 
     // For new widgets, the widget argument is not passed
@@ -243,7 +254,6 @@
     // If it's a NEW widget, the "widgetId" argument will be undefined 
     // and main.getWidget will return a new instance.
     // Existing RSS widgets will have the "_rss" property defined
-    var config;
     var widget = Eye.main.getWidget(widgetId);
     var id     = widget._rss ? widget.config.id : null;
 
@@ -260,22 +270,13 @@
     // Before saving anything, we want to check the source URLs for validity  
     // and discover any RSS feeds from non-rss URLs.
     Eye.rss.discover(sources, function(results){
-      
+
       // If all the sources are valid RSS links, we proceed with saving.
       if(_.all(_.values(results), function(result){ return result === 0; })) {
-        config = { module: 'rss', count: count, title: title, sources: sources, id: id };
-        $.ajax({
-          url: '/module/rss/widget',
-          type: 'post', 
-          data: JSON.stringify(config),
-          dataType: 'json',
-          contentType: 'application/json; charset=utf-8'
-        }).done(function(response){
-          // The response should return a new ID for new widgets 
-          // or the existing ID for old widgets. IDs are unique per user per widget.
-          if (response.status === 'ok'){
-            Eye.rss.setWidget(_.extend(config, { id: response.id }));
-          }
+        var config = { module: 'rss', count: count, title: title, sources: sources, id: id };
+        widget.save(config, function(err, id){
+          config.id = id;
+          Eye.rss.setWidget(config);
         });
       }
 
@@ -302,14 +303,13 @@
             self.parent().replaceWith(tSourceFake({ url: self.val(), message: result }));
           }
         });
-        // TODO: Inform the user that the URLS have been resolved.
-        
+
+        // TODO: Inform the user that the URLS have been resolved.        
         updateSourceURLS(); // Will update the existing source input with their values.
       }
-
-    });    
+    });   
   }
-  
+
   
   
   /**
@@ -329,7 +329,6 @@
   }
 
 
-
   /**
    *  The DOM Logic
    *
@@ -341,10 +340,8 @@
   // Toggle showing of all feed items
   .delegate('.rss-show-all', 'click', function(e){
     var widget = Eye.main.getWidget($(this).parents('.widget-container').data('id'));
-    if(widget) {
-      widget.config.count = "all";
-      widget.render();
-    }
+    widget.config.count = "all";
+    widget.render();
   })
 
   // Toggle the RSS item description (The optional CDATA sent with the RSS item)
