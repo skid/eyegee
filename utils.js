@@ -34,6 +34,7 @@ function comparePasswords(raw, salted){
   return hash.digest("hex") === salthash[1];
 }
 
+
 exports.guid = guid;
 exports.hashPassword = hashPassword;
 exports.comparePasswords = comparePasswords;

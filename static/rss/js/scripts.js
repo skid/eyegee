@@ -97,7 +97,7 @@
 
     getFeed: function(source, callback){
       // TODO: cache feeds and then expire them. Trigger an automatic refresh on cache expiry.
-      $.ajax({ url: '/module/rss/feed', type: 'post', context: this, data: { source: source }})
+      $.ajax({ url: '/proxy', type: 'post', context: this, data: { source: source, module: 'rss' }})
       .done(function(response){
         var feed = parseFeed(response);
         callback(feed ? null : new Error("Can't parse feed"), feed);
@@ -136,9 +136,9 @@
 
     sources.forEach(function(source){
       $.ajax({ 
-        url:  '/module/rss/feed', 
+        url:  '/proxy', 
         type: 'post', 
-        data: { source: source }
+        data: { source: source, module: 'rss' }
       })
       .done(function(response){
         var feed, links;

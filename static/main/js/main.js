@@ -40,12 +40,10 @@
   **/
   function showModal(el, target){
     var offset = target.offset();
-    var scroll = $(window).scrollTop();
-    var width  = $(window).width();
     var size   = { w: target.outerWidth(), h: target.outerHeight() };
     var css    = {  
-      right: Math.round(width - offset.left - size.w), 
-      top: Math.round(offset.top - scroll + size.h),
+      right: Math.round($(window).width() - offset.left - size.w), 
+      top: Math.round(offset.top + size.h),
     };
 
     if(target){
@@ -57,7 +55,7 @@
     }
     el.css(css).addClass('shown');
   }
-  
+
   /**
    * Hides a specific modal and sends a signal that the modal 
    * in question has been hidden.
@@ -153,7 +151,7 @@
     $(document).off('mouseup', drop);
   }
   
-  
+
   // Executed on each mousemove event
   function dragStep(e){
     var deltaX = mouse.x - e.pageX; 

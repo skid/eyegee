@@ -4,8 +4,10 @@ process.env.DEBUG     = '';
 Error.stackTraceLimit = Infinity;
 
 // SETTINGS
-SESSION_MAX_AGE       = 1000 * 60 * 60 * 24;
+SESSION_MAX_AGE = 1000 * 60 * 60 * 24;
+CACHE_TTL       = 1000 * 60 * 10;
 
+var request = require('request');
 var connect = require('connect');
 var utils   = require('./utils');
 var redis   = require('redis');
@@ -21,9 +23,11 @@ function redis_connect(){
 }
 redis_connect();
 
-global.modules = { 
-  rss: require('./rss'), 
-  comic: require('./comic') 
+// The rss and comic modules are simple so we have only dummy apps
+// Other, more complicated modules might have their own .js file or even a node module.
+global.modules = {
+  rss: { name: "rss", app: connect() }, 
+  comic: { name: "comic", app: connect() }
 }
 
 // Each module has its own Connect server for  handling module-specific requests.
@@ -48,6 +52,8 @@ app.use('/', connect.cookieParser());
 app.use('/', connect.json({ limit: '100kb' }));
 app.use('/', connect.urlencoded({ limit: '100kb' }));
 app.use('/', connect.cookieSession({ secret: "kirintormageslikesecrets", cookie: { maxAge: SESSION_MAX_AGE } }));
+
+
 
 // This runs for each request.
 // It establishes the user session and passes it on to the next layers.
@@ -86,6 +92,8 @@ app.use('/', function(req, res, next){
   });
 });
 
+
+
 // This layer will respond to requests to /signout
 // Signs out the user by deleting the session.
 app.use("/signout", function(req, res, next){
@@ -95,6 +103,8 @@ app.use("/signout", function(req, res, next){
     next();
   });
 });
+
+
 
 // This layer will respond to requests to /signin
 // It will try to fetch a user from the database and compare its password against the supplied one.
@@ -117,6 +127,7 @@ app.use('/signin', function(req, res, next){
     next();
   });
 });
+
 
 
 // This layer will respond to requests to /register and will 
@@ -142,6 +153,8 @@ app.use("/register", function(req, res, next){
   next();
 });
 
+
+
 // This layer will respond to requests made to /remove_widget and will
 // remove a widget with the specific id from the user configuration
 app.use('/remove_widget', function(req, res, next){
@@ -151,6 +164,7 @@ app.use('/remove_widget', function(req, res, next){
   res.body = { status: "ok" }
   next();
 });
+
 
 
 // This layer will respond to requests to /state.js and send a javascript file
@@ -164,6 +178,8 @@ app.use('/state.js', function(req, res, next){
 
   res.end("MODULES=" + JSON.stringify(_.keys(modules)) + ";USER=" + JSON.stringify(user) + ";" );
 });
+
+
 
 // Widget management function
 app.use('/widget', function(req, res, next){  
@@ -213,8 +229,59 @@ app.use('/widget', function(req, res, next){
   next();
 });
 
+
+
+// A commonly used function of many widgets is to request the source of
+// an arbitrary page on the internet.
+// This handler will cache the results for 10 minutes.
+app.use('/proxy', function(req, res, next){
+  var source = req.body.source;
+  var module = req.body.module;
+
+  if(!source) {
+    res.body = { status: 'error', message: 'Invalid Link' };
+    return next();
+  }
+
+  // TODO: Better sanitization
+  if(source.substr(0, 7) != "http://" && source.substr(0, 8) != "https://"){
+    source = "http://" + source;
+  }
+
+  db.get(module + ':' + source, function(err, result){
+    if(err){ return next(err); }
+
+    // Result found in cache
+    if(result){
+      return res.end(result);
+    }
+
+    request(source, function(err, response, body){
+      if(err) {
+        res.body = { statusCode: 500, status: 'error', message: 'Request Error (' + err.code + ')' };
+        return next();
+      }
+      if(response.statusCode !== 200) {
+        res.body = { statusCode: 504, status: 'error', message: 'Server Error (' + response.statusCode + ')' };
+        return next();
+      }
+
+      // We expire the key after CACHE_TTL time, which is 10 minutes by default.
+      // Redis will automatically delete the key and when it's next looked up, 
+      // we're gonna need to fetch it again.
+      db.set('rss:' + source, body);
+      db.pexpire('rss:' + source, CACHE_TTL);
+      res.end(body);
+    });
+  });
+});
+
+
+
 // Proxy to modules
 app.use('/module', moduleProxy);
+
+
 
 // Save user and sessions
 app.use('/', function(req, res, next){
@@ -237,6 +304,8 @@ app.use('/', function(req, res, next){
   next();  
 });
 
+
+
 // This layer will catch all requests where 'res.body' has been set to something meaningful.
 // Objects and arrays will be serialized to JSON. Strings will be rendered as txt/html.
 app.use('/', function(req, res, next){
@@ -257,6 +326,8 @@ app.use('/', function(req, res, next){
   }
 });
 
+
+
 // 404 Sentinel
 // Requests that made it here without explicitly requesting "/"
 // are requests that didn't match any other middleware layer, therefore 404 errors
@@ -270,6 +341,8 @@ app.use('/', function(req, res, next){
   }
 });
 
+
+
 // Render index.html
 app.use('/', function(req, res, next){
   // TODO: Pipe the file to the response
@@ -278,6 +351,8 @@ app.use('/', function(req, res, next){
     res.end(html);
   });
 });
+
+
 
 app.listen(3001);
 console.log("Server running on port 3001");
