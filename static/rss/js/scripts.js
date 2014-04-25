@@ -97,7 +97,7 @@
 
     getFeed: function(source, callback){
       // TODO: cache feeds and then expire them. Trigger an automatic refresh on cache expiry.
-      $.ajax({ url: '/proxy', type: 'post', context: this, data: { source: source, module: 'rss' }})
+      $.ajax({ url: '/proxy', type: 'post', context: this, data: { source: source }})
       .done(function(response){
         var feed = parseFeed(response);
         callback(feed ? null : new Error("Can't parse feed"), feed);
@@ -135,11 +135,7 @@
     }
 
     sources.forEach(function(source){
-      $.ajax({ 
-        url:  '/proxy', 
-        type: 'post', 
-        data: { source: source, module: 'rss' }
-      })
+      $.ajax({ url:  '/proxy', type: 'post', data: { source: source } })
       .done(function(response){
         var feed, links;
 
@@ -372,50 +368,27 @@
     next.find('.rss-input, .rss-source-remove').focus();
   });
 
-
-
-  /**
-   *  RSS / HTML Parsers
-   *
-   *    The following code parses the RSS feeds and HTML.
-  **/
-
-  // Uses the browser's inbuilt XML parser to parse feeds or XML pages.
-  function parse(xml) {
-    var xmldoc = null;
-    try {
-      if (window.ActiveXObject) {
-        xmldoc = new ActiveXObject("Microsoft.XMLDOM");
-        xmldoc.loadXML(xml);
-      }
-      else {
-        xmldoc = (new DOMParser).parseFromString(xml, "text/xml");
-      }
-    } catch(e){
-      xmldoc = null; // Can't parse - invalid XML
-    }
-    return xmldoc;
-  }
   
   // Looks for <link> elements with a "application/rss+xml" or "application/atom+xml" Content-Type.
   // Returns an array of found links' href attributes or null if the parsing fails or there are no such links.
+  // IMPORTANT: All "src" and "href" attributes of external documents are prefixed with "data-"
   function findRSSLinks(html){
-    var doc = parse(html);
+    var doc = Eye.main.parseXML(html);
     var links = doc ? $("link[type='application/rss+xml'],link[type='application/atom+xml']", doc) : [];
-    return (doc && links.length > 0) ? _.compact(links.map(function(){ return $(this).attr('href') }).toArray()) : null;
+    return (doc && links.length > 0) ? _.compact(links.map(function(){ return $(this).attr('data-href') }).toArray()) : null;
   }
   
   // Parses an XML string into an RSS or an Atom feed.
   // Returns null if it fails.
   function parseFeed(xml){
-    var doc = parse(xml);
+    var doc = Eye.main.parseXML(xml);
     return doc && ($('channel', doc).length == 1 ? parseRSS(doc) : ($('feed', doc).length == 1 ? parseAtom(doc) : null));
   }
   
   // RSS parser
+  // IMPORTANT: All "src" and "href" attributes of external documents are prefixed with "data-"
   function parseRSS(xml) {
     var channel, feed = {};
-
     channel = $('channel', xml).eq(0);
     feed.version = $('rss', xml).length == 0 ? '1.0' : $('rss', xml).eq(0).attr('version');
     feed.title = channel.find('title:first').text();
@@ -440,13 +413,14 @@
   }
   
   // Atom parser
+  // IMPORTANT: All "src" and "href" attributes of external documents are prefixed with "data-"
   function parseAtom(xml){
     var channel, feed = {};
-
+    
     channel = $('feed', xml).eq(0);
     feed.version = '1.0';
     feed.title = channel.find('title:first').text();
-    feed.link = channel.find('link:first').attr('href');
+    feed.link = channel.find('link:first').attr('data-href');
     feed.description = channel.find('subtitle:first').text();
     feed.language = channel.attr('xml:lang');
     feed.updated = channel.find('updated:first').text();

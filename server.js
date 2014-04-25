@@ -12,6 +12,7 @@ var connect = require('connect');
 var utils   = require('./utils');
 var redis   = require('redis');
 var fs      = require('fs');
+var qs      = require('qs');
 var _       = require('underscore');
 
 function redis_connect(){
@@ -52,7 +53,6 @@ app.use('/', connect.cookieParser());
 app.use('/', connect.json({ limit: '100kb' }));
 app.use('/', connect.urlencoded({ limit: '100kb' }));
 app.use('/', connect.cookieSession({ secret: "kirintormageslikesecrets", cookie: { maxAge: SESSION_MAX_AGE } }));
-
 
 
 // This runs for each request.
@@ -159,7 +159,6 @@ app.use("/register", function(req, res, next){
 // remove a widget with the specific id from the user configuration
 app.use('/remove_widget', function(req, res, next){
   var id = parseInt(req.body.id, 10);
-
   req.user.widgets = req.user.widgets.filter(function(w){ return w.id !== id });
   res.body = { status: "ok" }
   next();
@@ -171,14 +170,13 @@ app.use('/remove_widget', function(req, res, next){
 // that will set global variables which describe the application state
 app.use('/state.js', function(req, res, next){
   res.writeHead(200, "OK", { "Content-Type": "application/javascript" });
-  
+
   // Never send passwords out
   var user = _.clone(req.user);
   delete user.password;
 
   res.end("MODULES=" + JSON.stringify(_.keys(modules)) + ";USER=" + JSON.stringify(user) + ";" );
 });
-
 
 
 // Widget management function
@@ -231,12 +229,26 @@ app.use('/widget', function(req, res, next){
 
 
 
-// A commonly used function of many widgets is to request the source of
-// an arbitrary page on the internet.
-// This handler will cache the results for 10 minutes.
+/**
+ * This handler is used by the frontend to proxy requests to other sites.
+ * It works in 2 ways:
+ *   1. A POST request with a "source=http://example.com/page.html" in its body will
+ *      fetch the page and return its body as text.
+ *   2. A GET request with a source=http://example.com/resource.ext in the querystring will
+ *      fetch the resource and proxy it as binary data. Useful for caching images.
+ *
+ * Both modes will cache the resource in Redis for 10 minutes.
+**/
 app.use('/proxy', function(req, res, next){
-  var source = req.body.source;
-  var module = req.body.module;
+  if(req.method === 'POST') {
+    var source = req.body.source;
+    var binary = false;
+  }
+  else if(req.method === 'GET') {
+    var parsed = qs.parse(req._parsedUrl.query);
+    var source = parsed.source;
+    var binary = true;
+  }
 
   if(!source) {
     res.body = { status: 'error', message: 'Invalid Link' };
@@ -248,15 +260,22 @@ app.use('/proxy', function(req, res, next){
     source = "http://" + source;
   }
 
-  db.get(module + ':' + source, function(err, result){
+  db.get(( binary ? 'cache-binary:' : 'cache:') + source, function(err, result){
     if(err){ return next(err); }
 
     // Result found in cache
     if(result){
+      
+      if(binary) {
+        var result = result.split("\n\n");
+        res.writeHead(200, "OK", JSON.parse(result[0]));
+        result = new Buffer(result[1], 'base64');
+      }
       return res.end(result);
-    }
 
-    request(source, function(err, response, body){
+    }
+    
+    request({ url: source, encoding: binary ? null : undefined }, function(err, response, body){
       if(err) {
         res.body = { statusCode: 500, status: 'error', message: 'Request Error (' + err.code + ')' };
         return next();
@@ -266,13 +285,21 @@ app.use('/proxy', function(req, res, next){
         return next();
       }
 
+      if(binary){
+        db.set('cache-binary:' + source, JSON.stringify(response.headers) + "\n\n" + body.toString('base64'));
+        db.pexpire('cache-binary:' + source, CACHE_TTL);
+        res.writeHead(200, "OK", response.headers);
+        return res.end(body);
+      }
+      
       // We expire the key after CACHE_TTL time, which is 10 minutes by default.
       // Redis will automatically delete the key and when it's next looked up, 
       // we're gonna need to fetch it again.
-      db.set('rss:' + source, body);
-      db.pexpire('rss:' + source, CACHE_TTL);
+      db.set('cache:' + source, body);
+      db.pexpire('cache:' + source, CACHE_TTL);
       res.end(body);
     });
+
   });
 });
 

@@ -1,0 +1,6 @@
+.comic-item {
+  text-align: center;
+}
+.comic-item img {
+  max-width: 100% !important;
+}
