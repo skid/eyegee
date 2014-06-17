@@ -1,38 +1,28 @@
-<div class="rss-settings">
-  <h3>RSS Widget Options</h3>
-
-  <div class="error-message"></div>
-
-  <span class="rss-label">Widget Title</span>
-  <input class="rss-title rss-input" id="rss-widget-title" type="text" placeholder="Optional...">
-
-  <span class="rss-label">Sources <small>URLs not pointing to feeds will be resolved.</small></span>
-  
-  <% if(widget) {
-    _.each(widget.config.sources, function(url, index){ %>
-      <div class="rss-sources">
-        <input class="rss-source-existing rss-input" type="text" placeholder="RSS Feed / Site URL"  data-url='<%= url %>' disabled >
-        <a class="ion-trash-b rss-source-remove" href="javascript:;"></a>
-      </div>
-  <% }); } %>
-
-  <div class="rss-sources">
-    <input class="rss-source-new rss-input" id="rss-source-new" type="text" placeholder="RSS Feed / Site URL">
-    <a class="ion-plus-round rss-source-add" href="javascript:;"></a>
-  </div>
-
-  <div class="rss-options">
-    Show &nbsp;
-    <select id="rss-item-count">
-      <option value="1">1</option>
-      <option value="3">3</option>
-      <option value="5">5</option>
-      <option value="7">7</option>
-      <option value="10">10</option>
-      <option value="15">15</option>
-      <option value="20">20</option>
-      <option value="all">All</option>
-    </select>
-    &nbsp; Items
-  </div>
+<h3>RSS Widget</h3>
+<div class="error-message"></div>
+<label for="rss-widget-titl">Widget Title</label>
+<input class="rss-title rss-input" id="rss-widget-title" type="text" placeholder="Optional...">
+<p>
+  Add some RSS feed URLs in the field below.
+  You can also type a website URL and we'll try to find RSS feeds.
+</p>
+<label for="rss-source-new">Sources</label>
+<div class="rss-sources">
+  <input class="rss-source-new rss-input" id="rss-source-new" type="text" placeholder="URL to a new feed or website">
+  <a class="button-ext rss-source-add" href="javascript:;">&plus;</a>
+</div>
+<% if(widget) {
+  _.each(widget.config.sources, function(url, index){ %>
+    <div class="rss-sources">
+      <input class="rss-source-existing rss-input" type="text" data-url='<%= url %>' disabled >
+      <a class="button-ext rss-source-remove" href="javascript:;">&times;</a>
+    </div>
+<% }); } %>
+<div class="rss-options">
+  <label>Items Displayed</label>
+  <label class="inline"><input type="radio" name="rss_items_count" class="rss-item-count" value="5" checked>5</label>
+  <label class="inline"><input type="radio" name="rss_items_count" class="rss-item-count" value="10">10</label>
+  <label class="inline"><input type="radio" name="rss_items_count" class="rss-item-count" value="15">15</label>
+  <label class="inline"><input type="radio" name="rss_items_count" class="rss-item-count" value="20">20</label>
+  <label class="inline"><input type="radio" name="rss_items_count" class="rss-item-count" value="all">All</label>
 </div>

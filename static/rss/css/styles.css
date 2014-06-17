@@ -1,45 +1,64 @@
-.rss-settings h3 {
-  margin-bottom: 10px;
-}
-.rss-settings .rss-label {
-  display: block;
-  margin: 7px 0 3px 4px;
-}
-.rss-settings .rss-label small {
-  color: #a5b3aa;
-  font-size: 10px;
-  margin-left: 5px;
-}
-.rss-settings .rss-sources {
-  margin-bottom: 5px;
-  width: 335px;
-}
-.rss-settings .rss-sources .rss-input {
-  width: 300px;
-}
-.rss-settings .rss-sources .rss-input[disabled] {
-  background-color: transparent;
-}
-.rss-settings .rss-sources .rss-input-fake {
-  width: 300px;
+.rss-options label.inline {
+  margin: 0 10px 0 0;
   display: inline-block;
-  background-color: transparent;
-  color: #29302b;
-  padding: 4px;
-  border: solid 1px #ddd;
-  font-size: 13px;
 }
-.rss-settings .rss-sources .rss-input-fake span {
-  color: #cc4444;
+.rss-options label.inline * {
+  vertical-align: baseline;
 }
-.rss-settings .rss-sources .rss-source-remove,
-.rss-settings .rss-sources .rss-source-add {
-  font-size: 18px;
+.rss-options label.inline input {
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  display: inline-block;
+  width: auto;
+  margin-right: 5px;
+  outline: none;
+}
+.rss-sources {
+  width: 100%;
+  margin-bottom: 5px;
+}
+.rss-sources input.rss-input,
+.rss-sources .rss-input-fake {
+  box-sizing: border-box;
+  display: inline-block;
+  margin: 0;
+  padding: 5px;
+  font-size: 14px;
+  width: 220px;
+}
+.rss-sources input.rss-input.rss-source-existing,
+.rss-sources .rss-input-fake.rss-source-existing {
+  border-top: none;
+  border-left: none;
+  border-right: none;
+}
+.rss-sources input.rss-input span,
+.rss-sources .rss-input-fake span {
+  color: red;
+}
+.rss-sources a.button-ext {
+  display: inline-block;
+  margin: 0;
+  width: 15px;
+  background: #0066ff;
+  color: #fff;
+  padding: 5px;
+  font-size: 14px;
+  border: solid 1px #0066ff;
   text-decoration: none;
-  padding: 0 3px;
+  text-align: center;
 }
-.rss-settings .rss-options {
-  margin-top: 10px;
+.rss-sources a.button-ext:active,
+.rss-sources a.button-ext:focus,
+.rss-sources a.button-ext:active,
+.rss-sources a.button-ext:focus {
+  outline: none;
+}
+.rss-sources a.button-ext:focus {
+  color: #cceeff;
+  outline: solid 2px #0066ff;
+  outline-offset: 1px;
 }
 .rss-item {
   margin: 5px 0;
@@ -77,5 +96,5 @@
 .rss-item-comments {
   font-size: 20px;
   text-decoration: none;
-  color: #a5b3aa;
+  color: #0066ff;
 }

@@ -80,9 +80,11 @@
 
     widget.prepare(function(err, data){
       widget.render();
+      // Inform the framework that the widget is ready and rendered.
       Eye.main.trigger('widget:ready', widget);
     });
   }
+
 
   /**
    * UI METHOD: This method is invoked when a user clicks somewhere
@@ -123,7 +125,9 @@
     var id     = widget._comic ? widget.config.id : null;
     var source = $('#comic-site-name').val();
     var config = { module: 'comic', source: source, url: Sources[source].url, title: Sources[source].title, link: Sources[source].link, id: id };
-
+    
+    // Inform the framework that the save button has been clicked.
+    Eye.main.trigger('widget:saving', widget);
     widget.save(config, function(err, id){
       config.id = id;
       Eye.comic.setWidget(config);

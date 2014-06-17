@@ -1,3 +1,6 @@
+@import url(http://fonts.googleapis.com/css?family=Lobster);
+@import url(http://fonts.googleapis.com/css?family=PT+Sans:400,700);
+/** Web Fonts **/
 /** Reusable classes **/
 .clearfix {
   *zoom: 1;
@@ -10,43 +13,44 @@
 .clearfix:after {
   clear: both;
 }
-.loading-glyph {
-  font-size: 30px;
-  font-weight: bold;
-  color: #0ca5b0;
-}
 /** Main elements **/
 * {
-  font-family: "Ubuntu";
+  font-family: "PT Sans";
   margin: 0;
   padding: 0;
 }
 body {
-  background: url(../img/transparent-noise-light.png), url(../img/background.jpg) center center / 100% 100% no-repeat fixed;
-  color: #29302b;
+  color: #999999;
   font-size: 13px;
   overflow-y: scroll;
-  min-width: 1024px;
-}
-button {
-  border: none;
-  cursor: pointer;
-}
-button[class^=ion-] {
-  font-size: 20px;
-  line-height: 30px;
+  min-width: 320px !important;
 }
 input {
-  color: #29302b;
-  padding: 4px;
+  color: #0066ff;
+  padding: 5px;
   border: solid 1px #ddd;
-  font-size: 13px;
+  font-size: 14px;
+}
+input:focus {
+  outline: solid 2px #0066ff;
+}
+button {
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  padding: 5px;
 }
 button:active,
 button:focus,
-input:active,
-input:focus {
+button:active,
+button:focus {
   outline: none;
+}
+button:focus {
+  color: #cceeff;
+  outline: solid 2px #0066ff;
+  outline-offset: 1px;
 }
 a {
   color: #0ca5b0;
@@ -57,58 +61,215 @@ a:visited {
 /* Header section */
 header {
   position: relative;
-  height: 75px;
   width: 100%;
-  background-color: #4e3f30;
-  background-image: url(../img/transparent-noise.png);
+  min-width: 320px;
+  border-top: solid 1px transparent;
+  border-bottom: solid 1px #0066ff;
+  /* Brand title */
+  /* Navigation Buttons at the top of the page */
 }
 header h1 {
+  font-family: Lobster;
+  display: block;
   position: absolute;
-  top: 0;
-  left: 20px;
-  margin: none;
-  padding: none;
-  color: #f8f4e4;
-  font-size: 60px;
-  letter-spacing: -8px;
-}
-header button {
-  font-size: 14px;
-  height: 30px;
-  background: #f8f4e4;
-  color: #0ca5b0;
-  padding: 0 10px;
-}
-header .section {
-  position: absolute;
-}
-header .section * {
-  vertical-align: middle;
-  display: inline-block;
-  height: 30px;
-  border: none;
-  margin: none;
-}
-header .section.search {
-  top: 28px;
-  left: 230px;
+  width: 200px;
   padding: 0;
-  margin: 0;
+  margin: 0 0 0 -100px;
+  left: 50%;
+  color: #0066ff;
+  font-size: 50px;
+  text-align: center;
 }
-header .section.search input {
-  font-size: 14px;
-  width: 400px;
-  padding: 0 5px;
+header nav.main {
+  position: relative;
+  padding: 0;
+  margin: 10px 0;
+  width: 220px;
+  height: 55px;
 }
-header .section.search button {
-  margin-left: 10px;
+header nav.main button {
+  position: absolute;
+  z-index: 3;
+  width: 50px;
+  padding: 0px;
+  margin: 0px;
+  opacity: 1;
+  transition: opacity 0.2s cubic-bezier(0.95, 0.05, 0.795, 0.035), left 0.2s cubic-bezier(0.95, 0.05, 0.795, 0.035);
 }
-header .section.options {
-  right: 20px;
-  bottom: 0px;
+header nav.main button span {
+  position: absolute;
+  visibility: hidden;
+  width: 180px;
+  left: 65px;
+  top: 15px;
+  opacity: 0;
+  text-align: left;
+  color: #0066ff;
+  font-size: 20px;
+  transition: opacity 0.2s cubic-bezier(0.95, 0.05, 0.795, 0.035);
 }
-header .section.options button {
-  margin-right: 5px;
+header nav.main button:nth-child(1) {
+  left: 25px;
+}
+header nav.main button:nth-child(2) {
+  left: 85px;
+}
+header nav.main button:nth-child(3) {
+  left: 145px;
+}
+header nav.main button:focus {
+  outline: none;
+}
+header nav.main button.active {
+  left: 25px;
+  pointer-events: none;
+  transition: left 0.2s cubic-bezier(0.19, 1, 0.22, 1);
+}
+header nav.main button.active span {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.5s cubic-bezier(0.19, 1, 0.22, 1) 0.2s;
+}
+header nav.main button.inactive {
+  opacity: 0;
+  z-index: 1;
+  transition: opacity 0.2s cubic-bezier(0.19, 1, 0.22, 1);
+}
+header nav.main button i {
+  -webkit-font-smoothing: antialiased !important;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.004);
+  display: block;
+  width: 50px;
+  height: 44px;
+  margin: 0 0 5px 0;
+  padding: 6px 0 0 0;
+  border-radius: 25px;
+  font-size: 35px;
+  font-weight: bold;
+  color: #0066ff;
+  background: transparent;
+}
+/* Panes slide-in from the side. They contain global controls  */
+.pane {
+  z-index: 2;
+  position: fixed;
+  width: 320px;
+  height: 100%;
+  top: 0;
+  left: -321px;
+  opacity: 0;
+  background: #FFF;
+  border-right: solid 1px #0066ff;
+  transition: opacity 0.2s cubic-bezier(0.95, 0.05, 0.795, 0.035), left 0.2s cubic-bezier(0.95, 0.05, 0.795, 0.035);
+}
+.pane.active {
+  opacity: 1;
+  left: 0px;
+  transition: opacity 0.2s cubic-bezier(0.19, 1, 0.22, 1), left 0.2s cubic-bezier(0.19, 1, 0.22, 1);
+}
+/* User registration pane */
+.pane.side {
+  padding-top: 76px;
+}
+.pane {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+.pane .section {
+  position: relative;
+  width: 250px;
+  margin: 10px 0 0 20px;
+}
+.pane .section label {
+  display: block;
+  margin: 10px 0 5px;
+  color: #999999;
+  font-weight: normal;
+}
+.pane .section input {
+  width: 100%;
+}
+.pane .section button {
+  background: #0066ff;
+  color: #FFF;
+  border: none;
+  margin: 10px 0;
+}
+.pane .section p {
+  margin: 10px 0;
+  font-size: 12px;
+}
+#widget-pane {
+  overflow-x: hidden;
+}
+#widget-pane .section {
+  cursor: pointer;
+  position: relative;
+  width: 250px;
+  margin: 10px 0 30px 20px;
+  height: 100px;
+  left: 0;
+  transition: left 0.2s cubic-bezier(0.19, 1, 0.22, 1);
+}
+#widget-pane .section.hidden-pre {
+  left: -310px;
+  transition: left 0.2s cubic-bezier(0.19, 1, 0.22, 1);
+}
+#widget-pane .section.hidden-post {
+  left: 310px;
+  transition: left 0.2s cubic-bezier(0.19, 1, 0.22, 1);
+}
+#widget-pane .section.widget-settings {
+  top: 76px;
+  position: absolute;
+  height: auto;
+}
+#widget-pane .section .widget-option {
+  position: relative;
+  width: 250px;
+  height: 60px;
+}
+#widget-pane .section .widget-option i {
+  position: absolute;
+  color: #0066ff;
+  display: block;
+  font-size: 60px;
+  width: 60px;
+  bottom: 0;
+}
+#widget-pane .section .widget-option h2 {
+  position: absolute;
+  left: 70px;
+  font-size: 40px;
+  font-weight: bold;
+  color: #0066ff;
+  bottom: 0;
+}
+.widget-settings a.back {
+  display: inline-block;
+  font-size: 30px;
+  padding: 0 15px 0 0;
+  text-decoration: none;
+  color: #0066ff;
+}
+.widget-settings a.back + h3 {
+  display: inline-block;
+}
+.widget-settings h3 {
+  font-size: 30px;
+  font-weight: bold;
+  color: #0066ff;
+  cursor: default;
+}
+.widget-settings input,
+.widget-settings select {
+  width: 100%;
+}
+.widget-settings .controls button {
+  background: #0066ff;
+  color: #FFF;
+  border: none;
+  margin: 10px 0;
 }
 /* Main content */
 /* Modal Window Styles */
@@ -127,122 +288,11 @@ header .section.options button {
   background: -moz-radial-gradient(circle, #ffffff, #cccccc);
   background: -ms-radial-gradient(circle, #ffffff, #cccccc);
 }
-.popup {
-  position: absolute;
-  z-index: 10;
-  box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.3);
-  background-color: #f8f4e4;
-  visibility: hidden;
-}
-.popup button {
-  background-color: #0ca5b0;
-  color: #f8f4e4;
-}
-.popup.shown,
-#backdrop.shown {
-  visibility: visible;
-}
 .modal-active {
   position: relative;
   z-index: 11;
-  background-color: #f8f4e4;
+  background-color: #cceeff;
   box-shadow: 0 -2.5px 2px 1px rgba(0, 0, 0, 0.3);
-}
-#user-modal {
-  padding: 10px;
-}
-#user-modal button {
-  width: 70px;
-  padding: 4px;
-  border: solid 1px #ddd;
-  font-size: 13px;
-}
-#user-modal input {
-  width: 120px;
-  margin-right: 5px;
-}
-#user-modal button:focus,
-#user-modal input:focus {
-  outline: solid 1px #0ca5b0;
-}
-#user-modal .section-signin {
-  width: 350px;
-  padding-bottom: 10px;
-  border-bottom: solid 1px #f5f5f5;
-}
-#user-modal .section-register span {
-  width: 135px;
-  display: inline-block;
-  text-align: center;
-}
-.widget-icon-item {
-  *zoom: 1;
-  margin: 10px;
-  width: 220px;
-  cursor: pointer;
-}
-.widget-icon-item:before,
-.widget-icon-item:after {
-  content: " ";
-  display: table;
-}
-.widget-icon-item:after {
-  clear: both;
-}
-.widget-icon-item:before,
-.widget-icon-item:after {
-  content: " ";
-  display: table;
-}
-.widget-icon-item:after {
-  clear: both;
-}
-.widget-icon-item > .widget-icon-title {
-  color: #4e3f30;
-}
-.widget-icon-item > .widget-icon-title > div {
-  display: table-cell;
-  width: 30px;
-  height: 25px;
-  line-height: 25px;
-  font-size: 30px;
-  vertical-align: bottom;
-}
-.widget-icon-item > .widget-icon-title > div.ion-social-rss {
-  font-size: 25px;
-}
-.widget-icon-item > .widget-icon-title > h3 {
-  display: table-cell;
-  height: 25px;
-  font-size: 16px;
-  font-weight: normal;
-  vertical-align: bottom;
-}
-.widget-icon-item > p {
-  color: #a5b3aa;
-}
-.widget-settings {
-  padding: 10px;
-}
-.widget-settings .widget-settings-controls {
-  position: relative;
-  height: 20px;
-  margin: 10px -10px -10px -10px;
-  padding-top: 10px;
-}
-.widget-settings .widget-settings-controls > a[class^=ion-] {
-  position: absolute;
-  bottom: 3px;
-  height: 20px;
-  font-size: 20px;
-  text-decoration: none;
-  padding: 0 5px;
-}
-.widget-settings .widget-settings-controls .btn-ok {
-  right: 3px;
-}
-.widget-settings .widget-settings-controls .btn-delete {
-  left: 3px;
 }
 /* Widget Styles */
 .column {
@@ -265,7 +315,7 @@ header .section.options button {
   border: solid 1px #ddd;
   padding: 0 10px 10px 10px;
   margin: 10px 0;
-  background: rgba(254, 254, 235, 0.5);
+  background: rgba(204, 238, 255, 0.5);
 }
 .widget-container.dragging {
   opacity: 0.5;
@@ -277,7 +327,7 @@ header .section.options button {
   box-sizing: border-box;
   padding: 5px 0px 5px 10px;
   margin: 0 -10px 10px;
-  background: rgba(248, 244, 228, 0.5);
+  background: rgba(204, 238, 255, 0.5);
   cursor: -moz-grab;
   cursor: -webkit-grab;
 }
@@ -287,7 +337,7 @@ header .section.options button {
 }
 .widget-head h3 a {
   font-size: 17px;
-  color: #4e3f30;
+  color: #0066ff;
   text-transform: capitalize;
 }
 .widget-head .widget-options {
@@ -303,6 +353,20 @@ header .section.options button {
 }
 .drag-placeholder {
   height: 100px;
-  border: dashed 3px rgba(41, 48, 43, 0.3);
+  border: dashed 3px rgba(0, 102, 255, 0.3);
   margin: 10px 3px;
+}
+@media screen and (max-width: 480px) {
+  header h1 {
+    display: none;
+  }
+}
+@media screen and (max-width: 1024px) and (min-width: 481px) {
+  header h1 {
+    margin: 0;
+    left: 350px;
+    text-align: left;
+    font-size: 40px;
+    top: 12px;
+  }
 }

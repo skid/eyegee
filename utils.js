@@ -4,7 +4,6 @@
 var _       = require('underscore');
 var crypto  = require('crypto');
 
-
 // Generates a random 4 digit hex string
 function s4() {
   return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
@@ -33,7 +32,6 @@ function comparePasswords(raw, salted){
   hash.update(salthash[0] + raw);
   return hash.digest("hex") === salthash[1];
 }
-
 
 exports.guid = guid;
 exports.hashPassword = hashPassword;

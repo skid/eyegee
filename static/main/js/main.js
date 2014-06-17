@@ -6,7 +6,7 @@
   var tWidget         = _.template( $('#widget-template').html() );
   var tWidgetIcon     = _.template( $('#widget-icon-template').html() );
   var tWidgetSettings = _.template( $('#widget-settings-template').html() );
-  
+
   /* Elements */
   var eMain           = $('main');
   var eBackdrop       = $('#backdrop');
@@ -20,54 +20,6 @@
   var eSessionButton  = $('#session-button');
   var eRegisterButton = $('#register-button');
   var eLoginButton    = $('#login-button');
-
-  /* Modal Dialogs */
-  var eUserModal   = $('#user-modal');
-  var eWidgetModal = $('#widget-modal');
-  var modals       = [eUserModal, eWidgetModal];
-
-  // Modify the original event while it bubbles up.
-  // We need to know which modal window is being clicked on so we don't close it by mistake.
-  _.each(modals, function(modal){
-    modal.on('mousedown', function(e){ 
-      e.originalEvent._currentModal = modal;
-    });
-  });
-
-  /**
-   * Deals with modal window positioning.
-   * This will allow modal windows to appear as dropdown menus under items.
-  **/
-  function showModal(el, target){
-    var offset = target.offset();
-    var size   = { w: target.outerWidth(), h: target.outerHeight() };
-    var css    = {  
-      right: Math.round($(window).width() - offset.left - size.w), 
-      top: Math.round(offset.top + size.h),
-    };
-
-    if(target){
-      // The "target" is a button that invoked the modal
-      // We want to style it to look like it's part of the modal.
-      // We also need to keep a reference to it for when the modal closes.
-      target.addClass('modal-active');
-      el.__invoker = target;
-    }
-    el.css(css).addClass('shown');
-  }
-
-  /**
-   * Hides a specific modal and sends a signal that the modal 
-   * in question has been hidden.
-  **/
-  function hideModal(el, target) {
-    el.removeClass('shown');
-
-    if(el.__invoker) {
-      el.__invoker.removeClass('modal-active');
-      el.__invoker = null;
-    }
-  }
 
   /**
    * Simple drag-drop functionality.
@@ -191,6 +143,8 @@
   }
   
 
+
+
   /**
    * Serves as a basic abstract class for widgets.
    * Modules should extend this to make their own widgets.
@@ -210,7 +164,7 @@
 
   Widget.prototype.save = function(config, callback){
     config.column = this.config.column;
-
+    
     $.ajax({
       url: '/widget',
       type: 'post', 
@@ -226,6 +180,7 @@
       }
     });
   }
+
 
 
   /** 
@@ -378,7 +333,8 @@
        * The widget settings dialog depends on the module the widget belongs to.
       **/
       renderWidgetSettings: function(module, widget){
-        eWidgetModal.html(tWidgetSettings({ 
+
+        $('#widget-pane').append(tWidgetSettings({
           // The module name is used in the main template
           module: module.module, 
           // The we render the specific module dialog template which
@@ -388,18 +344,28 @@
           extra: widget ? widget.config.id : ""
         }));
 
+        _.defer(function(){
+          $('#widget-pane > .section:not(.widget-settings)').addClass('hidden-post');
+          $('#widget-pane > #' + module.module + '-settings').removeClass('hidden-pre');
+        });
+
         // Send a signal to existing widgets that the widget dialog has been rendered
         widget && _.defer(function(){
           Eye.main.trigger('widget:' + widget.config.id + ':settings');
         });
-
+        
+        // Place a loading indicator on the save/remove buttons once they've been clicked
+        this.once('widget:saving', function(widget){
+          $('.loader-button').addClass('loading');
+        });
+        
         // Hide the widget settings modal once the widget is ready.
         // The specific widget module needs to fire a "widget:ready" events.
         this.once("widget:ready", function(widget){
-          hideModal(eWidgetModal);
+          UI.hideAllPanes();
         });
       },
-
+      
 
       /**
        * Renders the widget picker dialog in the widget window.
@@ -407,7 +373,9 @@
       **/
       renderWidgetPicker: function(){
         // Order the modules (except main) in the palette alphabetically and then render the manifest
-        eWidgetModal.html( _.without(_.keys(Eye), 'main').sort().map(function(k){ return Eye[k]; }).map(tWidgetIcon).join("") );
+        $('#widget-pane').html(
+          _.without(_.keys(Eye), 'main').sort().map(function(k){ return Eye[k]; }).map(tWidgetIcon).join("")
+        );
       },
 
       
@@ -500,12 +468,17 @@
         if(widgetId) {
           instance = this.getWidget(widgetId);
           Eye[instance.config.module].widget(null, instance);
+          showModal(eWidgetModal, $(e.target));
         }
         else {
-          this.renderWidgetPicker();
+          if( $('#widget-pane').is('.active') ) {
+            $('#widget-pane > .widget-picker').removeClass('hidden-post');
+            $('#widget-pane > .widget-settings').addClass('hidden-pre');
+          }
+          else {
+            this.renderWidgetPicker();
+          }
         }
-
-        showModal(eWidgetModal, $(e.target));
       },
 
 
@@ -520,10 +493,12 @@
     }
   };
 
+
   /**
    * Make Eye.main an event manager
   **/
   _.extend(Eye.main, Backbone.Events);
+  
 
   /**
    * Loads the scripts for the modules used by the user session.
@@ -531,12 +506,10 @@
   **/
   function setupSession(emptyCache){
     if(window.USER && USER.email) {
-      eSessionButton.html(USER.email);
       eLoginButton.html("Sign Out").attr('data-method', "userSignout");
       eRegisterButton.html("Update").attr('data-method', "userUpdate");
     }
     else {
-      eSessionButton.html("Sign in / Register");
       eLoginButton.html("Sign In").attr('data-method', "userSignin");
       eRegisterButton.html("Register").attr('data-method', "userRegister");
     }
@@ -569,6 +542,34 @@
     });
   }
 
+  
+  var UI = {
+
+    /* UI Element collections */
+    panes: $('#widget-pane,#preferences-pane,#user-pane'),
+    navbtns: $('nav.main > button'),
+    
+    hideAllPanes: function(){
+      this.panes.removeClass('active');
+      this.navbtns.removeClass('active inactive');
+    },
+
+    showWidgetPane: function(){
+      $('#widget-pane').addClass('active');
+      Eye.main.renderWidgetPicker();
+    },
+
+    showPreferencesPane: function(){
+      $('#preferences-pane').addClass('active');
+    },
+
+    showUserPane: function(){
+      $('#user-pane').addClass('active');
+    }
+
+  }
+
+
   /**
    * This is executed only once, at page load.
    *  1. It binds some global event listeners
@@ -582,19 +583,35 @@
       var module = Eye[ $(this).data('module') ];
       var method = $(this).data('method');
       var extra  = $(this).data('extra');
-
+      
+      if($(this).is('.loading')) {
+        return;
+      }
+      
       // Pass the event object only to methods of Eye.main.
       // since this is the only module that cares about positioning.
       module[method](e, extra);
     });
 
+    // Initialize animations on navigation buttons
+    $('nav.main').delegate('button', 'click', function(){
+      var self = $(this);
+      var invoke = self.data('invoke');
+      
+      if(self.is('.active')) {
+        return;
+      }
+
+      self.siblings().addClass('inactive');
+      self.removeClass('inactive').addClass('active');
+      invoke && UI[invoke]();
+    });
+
     // Close modal windows when you click outside them
     $(document)
     .on('mousedown', function(e){
-      modals.forEach(function(modal){
-        e.originalEvent._currentModal !== modal && hideModal(modal);
-      });
-
+      e.button === 0 && $(e.target).parents('.pane').length === 0 && !$(e.target).is('.pane') && UI.hideAllPanes();
+      
       if(e.button === 0 && $(e.target).is('.widget-head')) {
         drag($(e.target).parent().data('id'), e);
       }
@@ -605,7 +622,7 @@
       return "/static/" + mod + "/manifest.js";
     }).concat(setupSession));
   }
-  
+
 
 
   /**
@@ -636,11 +653,7 @@
     return { "doc": doc, "destroy": destroy };
   }
   
-  
-  
-  
-  
-  
+
   /**
    * @param String html  A string representing HTML code
    * @return String      A new string, fully stripped of external resources. All "external" attributes (href, src) are prefixed by "data-"

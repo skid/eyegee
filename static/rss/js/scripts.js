@@ -19,13 +19,13 @@
   var tSource = _.template("\
 <div class='rss-sources'>\
   <input class='rss-source-existing rss-input' type='text' placeholder='RSS Feed / Site URL' data-url='<%= url %>' disabled>\
-  <a class='ion-trash-b rss-source-remove' href='javascript:;'></a>\
+  <a class='button-ext rss-source-remove' href='javascript:;'>&times;</a>\
 </div>");
 
   var tSourceFake = _.template("\
 <div class='rss-sources'>\
   <span class='rss-input-fake'><%= url %><span> &nbsp; <%= message %></span></span>\
-  <a class='ion-trash-b rss-source-remove' href='javascript:;'></a>\
+  <a class='button-ext rss-source-remove' href='javascript:;'>&times;</a>\
 </div>");
 
   var RSSMixin = {
@@ -235,11 +235,13 @@
       });
     }
     else {
+      // Change the text of the "save" button to "Check URLs" because that's the action we'll perform first
+      // After the URLs are checked, the label will change into "Save" again.
+      $('#widget-save-button').html("Check URLs");
       $('.rss-settings > h3').html("New RSS Widget");
       $('#rss-widget-title').focus();
     }
   }
-
 
   /** 
    * UI METHOD: This method is invoked when a user clicks somewhere
@@ -254,7 +256,7 @@
     var id     = widget._rss ? widget.config.id : null;
 
     var sources = _.compact($('.rss-source-existing').map(function(index, input){ return input.value.trim(); }).toArray());
-    var count   = $('#rss-item-count').val();
+    var count   = $('.rss-item-count:checked').val();
     var title   = $('.rss-title').val();
     
     // TODO: Better validation
@@ -302,6 +304,9 @@
 
         // TODO: Inform the user that the URLS have been resolved.        
         updateSourceURLS(); // Will update the existing source input with their values.
+        
+        // Change the text of the "save" button back to "Save"
+        $('#widget-save-button').html("Save");
       }
     });   
   }
@@ -350,9 +355,13 @@
     var self = $(this), input = self.prev(), parent = self.parent();
     // Only add a new source input if we have a value in the current one.
     if( input.val() ) {
-      parent.before( tSource({ url: input.val() }) );
+      parent.after( tSource({ url: input.val() }) );
       updateSourceURLS();
       input.val("").focus();
+      
+      // Change the text of the "save" button to "Check URLs" because that's the action we'll perform first
+      // After the URLs are checked, the label will change into "Save" again.
+      $('#widget-save-button').html("Check URLs");
     }
   })
   

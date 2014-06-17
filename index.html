@@ -13,20 +13,23 @@
     <script type="text/javascript" charset="utf-8" src="/static/main/js/loader.js"></script>
   </head>
   <body>
-    <!-- Page content starts here -->
-    <header>
-      <h1>EyeGee</h1>
-        
-      <form class='section search' method="get" action="http://google.com/search">
-        <input type="text" name="q" value="" placeholder="Search with Google">
-        <button type="submit" class="ion-search"></button>
-      </form>
 
-      <section class='section options'>
-        <button control type="button" data-module="main" data-method="showWidgetWindow" class="ion-plus-round"></button>
-        <button control type="button" data-module="main" data-method="showPreferencesWindow" class="ion-gear-a"></button>
-        <button control type="button" data-module="main" data-method="showUserWindow" id="session-button">Sign in / Register</button>
-      </section>
+    <header>
+      <h1 class="brand-title">EyeGee</h1>
+      <nav class="main">
+        <button type="button" data-module="main" data-invoke="showWidgetPane">
+          <i class="ion-plus-round"></i>
+          <span>New Widget</span>
+        </button>
+        <button type="button" data-module="main" data-invoke="showPreferencesPane">
+          <i class="ion-gear-a"></i>
+          <span>Preferences</span>
+        </button>
+        <button type="button" data-module="main" data-invoke="showUserPane">
+          <i class="ion-person"></i>
+          <span id="session-button">Sign In / Register</span>
+        </button>
+      </nav>
     </header>
 
     <main class="clearfix"></main>
@@ -37,24 +40,38 @@
          Displays a semi-transparent layer over the page content. -->
     <div id="backdrop"></div>
 
-    <!-- Popup for user login/registraion.
+    <!-- User management pane.
          Not visible by default. -->
-    <div id="user-modal" class="popup">
-      <div class="section-signin">
-        <input type="email" id="email" value="" placeholder="Email">
-        <input type="password" value="" id="password" placeholder="Password">
-        <button control type="button" data-module="main" data-method="userSignin" id="login-button">Log In</button>
+    <div id="user-pane" class="pane side">
+      <div class="section">
+        <label for="email">Email</label>
+        <input type="email" id="email" value="">
+        <label for="password">Password</label>
+        <input type="password" value="" id="password">
+
+        <button control type="button" data-module="main" data-method="userSignin" id="login-button">Sign In</button>
       </div>
-      <div class="section-register">
-        <span>OR</span>
+
+      <div class="section">
+        <p>
+          No Account yet? Just repeat your password and <br>
+          hit "Register" instead of "Sign In".
+        </p>
+      </div>
+
+      <div class="section">
         <input type="password" value="" id="password-check" placeholder="Repeat Password">
         <button control type="button" data-module="main" data-method="userRegister" id="register-button">Register</button>
       </div>
     </div>
 
-    <!-- Widget management modal. 
+    <!-- Widget management pane.
          Not visible by default. -->
-    <div id="widget-modal" class="popup"></div>
+    <div id="widget-pane" class="pane side"></div>
+
+    <!-- Widget management pane.
+         Not visible by default. -->
+    <div id="preferences-pane" class="pane side"></div>
 
 
     <!-- Underscore widget tempalte. 
@@ -75,12 +92,12 @@
     <!-- Underscore widget icon template. 
          For each available widget we render this in the widget management modal -->
     <script id="widget-icon-template" type="tempalte/underscore" charset="utf-8">
-      <div control class='widget-icon-item' data-module='<%= module %>' data-method='widget'>
-        <div class='widget-icon-title'>
-          <div class='<%= icon %>'></div>
-          <h3><%= name %></h3>
+      <div control class='section widget-picker' data-module='<%= module %>' data-method='widget'>        
+        <div class="widget-option">
+          <i class='<%= icon %>'></i>
+          <h2><%= name %></h2>
         </div>
-        <p><%= description %></p>
+          <p><%= description %></p>
       </div>
     </script>
 
@@ -88,13 +105,18 @@
     <!-- Underscore widget settings template. 
          When a widget is added or modified, we render this in the widget management modal -->
     <script id="widget-settings-template" type="tempalte/underscore" charset="utf-8">
-      <div class='widget-settings clearfix'>
+      <div class='section widget-settings hidden-pre clearfix' id="<%= module %>-settings">
+        <% if(!extra){ %>
+          <a control href='javascript:;' class="back" data-module='main' data-method='showWidgetWindow'>&laquo;</a>
+        <% } %>
+
         <%= dialog %>
-        <div class='widget-settings-controls'>
-          <a control href="javascript:;" class='ion-checkmark btn-ok' data-module='<%= module %>' data-method='saveSettings' data-extra='<%= extra %>'></a>
+
+        <div class='controls'>
+          <button control id="widget-save-button" type="button" class='loader-button' data-module='<%= module %>' data-method='saveSettings' data-extra='<%= extra %>'>Save</button>
           <% if(extra){ %>
-            <a control href='javascript:;' class='ion-trash-b btn-delete' data-module='main' data-method='removeWidget' data-extra='<%= extra %>'></a>
-          <% } %>  
+            <button control id="widget-remove-button" type='button' class='loader-button' data-module='main' data-method='removeWidget' data-extra='<%= extra %>'>Remove</a>
+          <% } %>
         </div>
       </div>
     </script>

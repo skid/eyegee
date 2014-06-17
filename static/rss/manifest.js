@@ -7,9 +7,9 @@
     dialog:      '/static/rss/html/dialog.html',
     main:        '/static/rss/js/scripts.js',
     stylesheet:  '/static/rss/css/styles.css',
-    name:        'RSS',
+    name:        'RSS Feed',
     icon:        'ion-social-rss',
-    description: 'Read single or combined RSS feeds.',
+    description: 'Add a single feed or combine multiple feeds into this widget.',
 
     /**
      * UI METHOD: This method is invoked when a user clicks somewhere

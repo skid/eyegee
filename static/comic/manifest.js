@@ -9,7 +9,7 @@
     stylesheet:  '/static/comic/css/styles.css',
     name:        'Comics',
     icon:        'ion-images',
-    description: 'Read your favourite daily comic.',
+    description: 'A daily comic strip from a selection of popular websites.',
 
     /**
      * UI METHOD: This method is invoked when a user clicks somewhere
