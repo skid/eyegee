@@ -9,117 +9,31 @@
 
     <!-- Place favicon.ico and apple-touch-icon(s) in the root directory -->    
     <link rel="stylesheet" href="/static/main/css/styles.css">
-    <link rel="stylesheet" href="/static/main/css/ionicons.css">
     <script type="text/javascript" charset="utf-8" src="/static/main/js/loader.js"></script>
   </head>
   <body>
 
     <header>
-      <h1 class="brand-title">EyeGee</h1>
+      <h1 class="main-title">EyeGee</h1>
       <nav class="main">
-        <button type="button" data-module="main" data-invoke="showWidgetPane">
-          <i class="ion-plus-round"></i>
-          <span>New Widget</span>
+        <button type="button" id="new-widget-button">
+          <span class="icon"></span>
+          <span class="label">New Widget</span>
         </button>
-        <button type="button" data-module="main" data-invoke="showPreferencesPane">
-          <i class="ion-gear-a"></i>
-          <span>Preferences</span>
+        <button type="button" id="preferences-button">
+          <span class="icon"></span>
+          <span class="label">Preferences</span>
         </button>
-        <button type="button" data-module="main" data-invoke="showUserPane">
-          <i class="ion-person"></i>
-          <span id="session-button">Sign In / Register</span>
+        <button type="button" id="session-button">
+          <span class="icon"></span>
+          <span class="label">Sign In / Register</span>
         </button>
       </nav>
     </header>
 
-    <main class="clearfix"></main>
+    <main></main>
 
     <footer></footer>
-
-    <!-- Reusable Backdrop element. 
-         Displays a semi-transparent layer over the page content. -->
-    <div id="backdrop"></div>
-
-    <!-- User management pane.
-         Not visible by default. -->
-    <div id="user-pane" class="pane side">
-      <div class="section">
-        <label for="email">Email</label>
-        <input type="email" id="email" value="">
-        <label for="password">Password</label>
-        <input type="password" value="" id="password">
-
-        <button control type="button" data-module="main" data-method="userSignin" id="login-button">Sign In</button>
-      </div>
-
-      <div class="section">
-        <p>
-          No Account yet? Just repeat your password and <br>
-          hit "Register" instead of "Sign In".
-        </p>
-      </div>
-
-      <div class="section">
-        <input type="password" value="" id="password-check" placeholder="Repeat Password">
-        <button control type="button" data-module="main" data-method="userRegister" id="register-button">Register</button>
-      </div>
-    </div>
-
-    <!-- Widget management pane.
-         Not visible by default. -->
-    <div id="widget-pane" class="pane side"></div>
-
-    <!-- Widget management pane.
-         Not visible by default. -->
-    <div id="preferences-pane" class="pane side"></div>
-
-
-    <!-- Underscore widget tempalte. 
-         All widgets are displayed in a container like this. They render their own content. -->
-    <script id="widget-template" type="tempalte/underscore" charset="utf-8">
-      <div class='widget-container'>
-        <div class='widget-head clearfix'>
-          <h3 class='widget-title'></h3>
-          <div class='widget-options'>
-            <a control href='javascript:;' class='ion-gear-b' data-module='main' data-method='showWidgetWindow' data-extra='<%= id %>'></a>            
-          </div>
-        </div>
-        <div class='widget-content'><center><span class="ion-ios7-gear-outline ion-spin loading-glyph" data-animation="true"></span></center></div>
-      </div>
-    </script>
-
-
-    <!-- Underscore widget icon template. 
-         For each available widget we render this in the widget management modal -->
-    <script id="widget-icon-template" type="tempalte/underscore" charset="utf-8">
-      <div control class='section widget-picker' data-module='<%= module %>' data-method='widget'>        
-        <div class="widget-option">
-          <i class='<%= icon %>'></i>
-          <h2><%= name %></h2>
-        </div>
-          <p><%= description %></p>
-      </div>
-    </script>
-
-
-    <!-- Underscore widget settings template. 
-         When a widget is added or modified, we render this in the widget management modal -->
-    <script id="widget-settings-template" type="tempalte/underscore" charset="utf-8">
-      <div class='section widget-settings hidden-pre clearfix' id="<%= module %>-settings">
-        <% if(!extra){ %>
-          <a control href='javascript:;' class="back" data-module='main' data-method='showWidgetWindow'>&laquo;</a>
-        <% } %>
-
-        <%= dialog %>
-
-        <div class='controls'>
-          <button control id="widget-save-button" type="button" class='loader-button' data-module='<%= module %>' data-method='saveSettings' data-extra='<%= extra %>'>Save</button>
-          <% if(extra){ %>
-            <button control id="widget-remove-button" type='button' class='loader-button' data-module='main' data-method='removeWidget' data-extra='<%= extra %>'>Remove</a>
-          <% } %>
-        </div>
-      </div>
-    </script>
 
 
     <script type="text/javascript" charset="utf-8">
