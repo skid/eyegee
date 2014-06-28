@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="no-js">
+<html lang="en" ng-app="eyegeeApp">
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -9,45 +9,127 @@
 
     <!-- Place favicon.ico and apple-touch-icon(s) in the root directory -->    
     <link rel="stylesheet" href="/static/main/css/styles.css">
-    <script type="text/javascript" charset="utf-8" src="/static/main/js/loader.js"></script>
+    <script src="/static/main/js/loader.js"></script>
+    <script src="/static/main/js/angular.js"></script>
+    <script src="/static/main/js/angular-route.js"></script>
   </head>
+  
   <body>
 
-    <header>
+    <header ng-controller="NavigationController">
       <h1 class="main-title">EyeGee</h1>
       <nav class="main">
-        <button type="button" id="new-widget-button">
-          <span class="icon"></span>
-          <span class="label">New Widget</span>
+        <button type="button" id="new-widget-button" ng-click="newWidget()">
+          NW
         </button>
-        <button type="button" id="preferences-button">
-          <span class="icon"></span>
-          <span class="label">Preferences</span>
-        </button>
-        <button type="button" id="session-button">
-          <span class="icon"></span>
-          <span class="label">Sign In / Register</span>
+        <button type="button" id="session-button" ng-click="doLoginOrRegister()">
+          {{ sessionButtonTitle }}
         </button>
       </nav>
     </header>
 
-    <main></main>
+    <main ng-controller="MainController">
+      
+      <section ng-repeat="column in columns" class="col-{{ columns.length }}">
+        <div ng-repeat="widget in column">
+          <h3>{{ widget.title }}</h3>
+          <div widget-body="{{ widget.module }}"></div>
+        </div>
+      </section>
+      
+    </main>
 
     <footer></footer>
 
-
-    <script type="text/javascript" charset="utf-8">
-    /** 
-     * The globals.js file is a nodejs generated JS file that sets 2 global variables:
-     *  MODULES - an array of available modules on the website
-     *  USER    - contains the modules used by the user and their configuration
-     *
-     * The lib.js file contains jquery, underscore and backbone.
-     * The main.js file contains the code for the main module and initialization function.
-    **/
-    require(['/state.js', '/static/main/js/lib.js', '/static/main/js/main.js'], function(){ 
-      init();
-    });
-    </script>
   </body>
+  <script src="/state.js"></script>
+  <script>
+    var app = angular.module('eyegeeApp', ['ngRoute']);
+    
+    // Needed for dynamically loading controllers (https://coderwall.com/p/y0zkiw)
+    app.config(function($controllerProvider, $compileProvider, $filterProvider, $provide){
+      app.lazy = {
+        controller: $controllerProvider.register,
+        directive: $compileProvider.directive,
+        filter: $filterProvider.register,
+        factory: $provide.factory,
+        service: $provide.service
+      }
+    });
+
+    /**
+     * The widgetItem directive will render the widgets.
+     * It will have different behaviour based on the widget that calls it.
+     *
+     * Check: http://onehungrymind.com/angularjs-dynamic-templates/
+    **/
+    app.directive('widgetBody', function ($compile, $http, $templateCache, $q) {
+      var linker = function widgetBodyLinker(scope, element, attrs) {
+        // The directive syntax is <div widget-body="{{widget.module}}"></div>
+        // Therefore the name of the widget's module is in the widgetBody attr
+        var module = attrs.widgetBody;
+
+        require('/static/' + module + '/js/controller.js', function(){
+
+          // TODO: Find out why passing a function that reads the widget-body attribute
+          // to the templateUrl in the Directive Definition Map doesn't work ...
+          $http
+            .get('/static/' + module + '/templates/widget.html', { cache: $templateCache })
+            .success(function(html){
+              element.html(html);
+            })
+            .then(function(response){
+              element.replaceWith( $compile(element.html())(scope) )
+            });
+
+          scope.contents = module;
+        });
+      }
+
+      return {
+        restrict: "A",
+        link: linker,
+        scope: {}
+      };
+    });
+
+
+    // Takes care of displaying widgets
+    app.controller('MainController', function($scope){
+      
+      $scope.parentData = "This is parent data";
+      
+      $scope.columns = [
+        [ { title: "Widget 1", module: "rss" } ],
+        [ { title: "Widget 2", module: "comic" } ],
+        [ { title: "Widget 3", module: "rss" } ]
+      ];
+
+      // setTimeout(function(){
+      //   $scope.columns = [
+      //     [ { title: "Widget 3", module: "rss" } ],
+      //     [ { title: "Widget 1", module: "rss" } ],
+      //     [ { title: "Widget 2", module: "comic" } ]
+      //   ];
+      //
+      //   // This works
+      //   $scope.$apply(function(){});
+      // }, 1000);
+
+    });
+
+    // Takes care of user signin and registration
+    app.controller('SessionController', function($scope){
+      
+    });
+
+    // Takes care of the navigation buttons
+    app.controller('NavigationController', function($scope){
+      $scope.sessionButtonTitle = "Sign In";
+      $scope.newWidget = function(){ console.log("New Widget"); }
+      $scope.doLoginOrRegister = function(){ console.log("Login/Register"); }
+    });
+
+  </script>
 </html>
+

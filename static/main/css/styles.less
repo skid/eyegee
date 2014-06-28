@@ -4,7 +4,6 @@
 @bg_dark:    #4E3F30;
 @bg_light:   #FEFEEB;
 
-
 @borders:    #06F;
 @bg_dark:    #06F;
 @text_dark:  #06F;
@@ -21,7 +20,6 @@
 /** Reusable classes **/
 .clearfix() {
   *zoom: 1;
-  
   &:before, &:after {
     content: " ";
     display: table;
@@ -88,11 +86,11 @@ a {
 }
 
 
-
 /* Header section */
 header {
   position:      relative;
   width:         100%;
+  height:        75px;
   min-width:     320px;
   border-top:    solid 1px transparent;
   border-bottom: solid 1px @borders;
@@ -113,391 +111,30 @@ header {
 
   /* Navigation Buttons at the top of the page */
   nav.main {
-    position: relative;
+    position: absolute;
     padding:  0;
-    margin:   10px 0;
-    width:    220px;
-    height:   55px;
+    margin:   0 10px;
+    bottom:   0px;
 
     button {
-      position: absolute;
-      z-index: 3;
-      width: 50px;
-      padding: 0px;
-      margin: 0px;
-      opacity: 1;
-      transition: opacity 0.2s cubic-bezier(0.95, 0.05, 0.795, 0.035),
-                  left 0.2s cubic-bezier(0.95, 0.05, 0.795, 0.035);
-      
-      span {
-        position: absolute;
-        visibility: hidden;
-        
-        width: 180px;
-        left: 65px;
-        top: 15px;
-        opacity: 0;
-        
-        text-align: left;
-        color: @text_dark;
-        font-size: 20px;
-        
-        transition: opacity 0.2s cubic-bezier(0.95, 0.05, 0.795, 0.035);
-      }
-      
-      &:nth-child(1) {
-        left: 25px;
-      }
-      
-      &:nth-child(2) {
-        left: 85px;
-      }
-      
-      &:nth-child(3) {
-        left: 145px;
-      }
-      
-      &:focus {
-        outline: none;
-      }
-
-      &.active {
-        left: 25px;
-        pointer-events: none;
-
-        transition: left 0.2s cubic-bezier(0.19, 1, 0.22, 1);
-        
-        span {
-          opacity: 1;
-          visibility: visible;
-          transition: opacity 0.5s cubic-bezier(0.19, 1, 0.22, 1) 0.2s;
-        }
-      }
-      
-      &.inactive {
-        opacity: 0;
-        z-index: 1;
-        transition: opacity 0.2s cubic-bezier(0.19, 1, 0.22, 1);
-      }
-
-      i {
-        -webkit-font-smoothing: antialiased !important;
-        text-shadow: 1px 1px 1px rgba(0,0,0,0.004);
-
-        display: block;
-        width: 50px;
-        height: 44px;
-        margin: 0 0 5px 0;
-        padding: 6px 0 0 0;
-
-        border-radius: 25px;
-        font-size: 35px;
-        font-weight: bold;
-        color: @text_dark;
-        background: transparent;
-      }
+      border: solid 1px @link;
+      display: inline-block;
+      margin: 5px 10px
     }
   } 
 }
 
+main {
+  section {
+    float: left;
 
-/* Panes slide-in from the side. They contain global controls  */
-.pane {
-  z-index:  2;
-  position: fixed;
-  width:    320px;
-  height:   100%;
-  top:      0;
-  left:     -321px;
-  opacity:  0;
-  background: #FFF;
-  border-right: solid 1px @text_dark;
-  transition: opacity 0.2s cubic-bezier(0.95, 0.05, 0.795, 0.035), 
-              left 0.2s cubic-bezier(0.95, 0.05, 0.795, 0.035);
-  
-  &.active {
-    opacity: 1;
-    left: 0px;
-    transition: opacity 0.2s cubic-bezier(0.19, 1, 0.22, 1), 
-                left 0.2s cubic-bezier(0.19, 1, 0.22, 1);
-  }
-}
-
-/* User registration pane */
-.pane.side {
-  padding-top: 76px;
-}
-
-
-// The user registration and profile management pane
-.pane {
-  padding-left:   10px;
-  padding-right:  10px;
-  
-  .section {
-    position: relative;
-    width:    250px;
-    margin:   10px 0 0 20px;
-    
-    label {
-      display: block;
-      margin: 10px 0 5px;
-      color: @text_normal;
-      font-weight: normal;
-    }
-  
-    input {
-      width: 100%;
-    }
-    
-    button {
-      background: @text_dark;
-      color: #FFF;
-      border: none;
-      margin: 10px 0;
-    }
-    
-    p {
-      margin: 10px 0;
-      font-size: 12px;
-    }
-  }
-}
-
-// The widget picking pane
-#widget-pane {
-  overflow-x: hidden;
-    
-  .section {
-    cursor:     pointer;
-    position:   relative;
-    width:      250px;
-    margin:     10px 0 30px 20px;
-    height:     100px;
-    left:       0;
-    transition: left 0.2s cubic-bezier(0.19, 1, 0.22, 1);
-    
-    // Before showing, we add this class to the section.
-    &.hidden-pre {
-      left: -310px;
-      transition: left 0.2s cubic-bezier(0.19, 1, 0.22, 1);
-    }
-    
-    // When hiding we add this class to the section.
-    &.hidden-post {
-      left: 310px;
-      transition: left 0.2s cubic-bezier(0.19, 1, 0.22, 1);
-    }
-    
-    // The .wiget-settings class is added to sections that contain specific widget settings
-    &.widget-settings {
-      top: 76px;
-      position: absolute;
-      height: auto;
-    }
-    
-    // The .widget-option class is added to sections that allow you to select a new widget
-    .widget-option {
-      position: relative;
-      width: 250px;
-      height: 60px;
-
-      i {
-        position: absolute;
-        color: @text_dark;
-        display: block;
-        font-size: 60px;
-        width: 60px;
-        bottom: 0;
-      }
-    
-      h2 {
-        position: absolute;
-        left: 70px;
-        font-size: 40px;
-        font-weight: bold;
-        color: @text_dark;
-        bottom: 0;
-      }
+    &.col-3 {
+      box-sizing: border-box;
+      width: 33%;
+      padding: 10px 5px;
     }  
   }
 }
 
 
-.widget-settings {
-  a.back {
-    display: inline-block;
-    font-size: 30px;
-    padding: 0 15px 0 0;
-    text-decoration: none;
-    color: @text_dark;
-  }
-  a.back + h3 {
-    display: inline-block;
-  }
-  
-  h3 {
-    font-size: 30px;
-    font-weight: bold;
-    color: @text_dark;
-    cursor: default;
-  }
-  
-  input, select {
-    width: 100%;
-  }
-  
-  .controls {
-    button {
-      background: @text_dark;
-      color: #FFF;
-      border: none;
-      margin: 10px 0;
-      
-      &.loading {
-        // TODO Add styles
-      }
-    }
-  }
-}
 
-/* Main content */
-main {
-  
-}
-
-
-/* Modal Window Styles */
-
-// A general purpose backdrop element
-#backdrop {
-  top:        0;
-  left:       0;
-  right:      0;
-  bottom:     0;
-  z-index:    5;
-  visibility: hidden;
-  opacity:    .55;
-  position:   fixed;
-  background: #fff;
-  background: -webkit-gradient(radial, center center, 0, center center, 460, from(#fff), to(#ccc));
-  background: -webkit-radial-gradient(circle, #fff, #ccc);
-  background: -moz-radial-gradient(circle, #fff, #ccc);
-  background: -ms-radial-gradient(circle, #fff, #ccc);
-}
-
-
-// Class added to buttons that open a popup window
-// while the popup window is shown.
-.modal-active {
-  position: relative;
-  z-index: 11; 
-  background-color: @text_light;
-  box-shadow: 0 -2.5px 2px 1px rgba(0, 0, 0, 0.3);
-}
-
-
-
-
-
-
-/* Widget Styles */
-.column {
-  margin-left: 10px;
-  float: left;
-  min-height: 100px;  
-}
-
-.column-2 {
-  width: ~"calc(50% - 15px)";
-}
-
-.column-3 {
-  width: ~"calc(33.33% - 15px)";
-}
-
-.column-4 {
-  width: ~"calc(25% - 15px)";
-}
-
-
-.widget-container {
-  width: 100%;
-  box-sizing: border-box;
-  border: solid 1px #ddd;  
-  padding: 0 10px 10px 10px;
-  margin: 10px 0;
-  background: fadeout(@bg_light, 50%);
-  
-  &.dragging {
-    opacity: 0.5;
-    position: absolute;
-    cursor: -moz-grabbing;
-    cursor: -webkit-grabbing;
-  }
-}
-
-.widget-head {
-  box-sizing: border-box;
-  padding: 5px 0px 5px 10px;
-  margin: 0 -10px 10px;
-  background: fadeout(@text_light, 50%);
-  
-  cursor: -moz-grab;
-  cursor: -webkit-grab;
-  
-  h3 {
-    display: inline-block;
-    float: left;
-    a {
-      font-size: 17px;
-      color: @bg_dark;
-      text-transform: capitalize;
-    }
-  }
-
-  .widget-options {
-    display: inline-block;
-    float: right;
-
-    a {
-      text-decoration: none;
-      font-size: 20px;
-      color: @link;
-      margin-left: 4px;
-      padding: 2px 10px;
-    } 
-  }
-}
-
-.drag-placeholder {
-  height: 100px;
-  border: dashed 3px fadeout(@text_dark, 70%);
-  margin: 10px 3px;
-}
-
-
-
-
-@media screen and (max-width: 480px) {
-  header {
-
-    h1 {
-      display: none;
-    }
-
-  }
-}
-
-@media screen and (max-width: 1024px) and (min-width: 481px) {
-  header {
-
-    h1 {
-      margin: 0;
-      left: 350px;
-      text-align: left;
-      font-size: 40px;
-      top: 12px;
-    }
-  }
-}

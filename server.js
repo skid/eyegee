@@ -188,7 +188,7 @@ app.use('/widget', function(req, res, next){
   var widgets  = req.user.widgets;
   var exists   = id && _.find(widgets, function(w){ return id === w.id; });
   var position = config.position;
-  
+
   delete config.position;
   if(exists) {
     // When the position key is sent, we want to reorder the widgets around
