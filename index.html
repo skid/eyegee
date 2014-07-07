@@ -12,6 +12,7 @@
     <script src="/static/main/js/loader.js"></script>
     <script src="/static/main/js/angular.js"></script>
     <script src="/static/main/js/angular-route.js"></script>
+    <script src="/static/main/js/angular-widgetbox.js"></script>
   </head>
   
   <body>
@@ -27,16 +28,16 @@
         </button>
       </nav>
     </header>
-
+    <!-- The column arrangement of widgets is created in a separate angular directive -->
     <main ng-controller="MainController">
-      
-      <section ng-repeat="column in columns" class="col-{{ columns.length }}">
-        <div ng-repeat="widget in column">
+
+      <section ng-repeat="column in columns" class="column wb-column col-{{ columns.length }}" widgetbox-column='wb-column' widgetbox-column-id="{{ $index }}">
+        <div ng-repeat="widget in column" class="widget-container wb-widget" widgetbox-widget='wb-widget' widgetbox-draghandle="h3" widgetbox-widget-id="{{ $index }}">
           <h3>{{ widget.title }}</h3>
-          <div widget-body="{{ widget.module }}"></div>
+          <widget-body module="{{ widget.module }}" widget-id="{{ widget.id }}"></widget-body>
         </div>
       </section>
-      
+
     </main>
 
     <footer></footer>
@@ -44,7 +45,29 @@
   </body>
   <script src="/state.js"></script>
   <script>
-    var app = angular.module('eyegeeApp', ['ngRoute']);
+    var app = angular.module('eyegeeApp', ['ngRoute', 'widgetbox']);
+    
+    var model = {
+      columns: [
+        [ { title: "Widget 1", module: "rss", id: 1, extra: "Arstechnica" } ],
+        [ { title: "Widget 2", module: "comic", id: 2, extra: "Dilbert" }, 
+          { title: "Widget 4", module: "rss", id: 4, extra: "Tomshardware" } ],
+        [ { title: "Widget 3", module: "rss", id: 3, extra: "Hackernews" } ]
+      ],
+
+      getWidgetById: function(id){
+        var c, w, j, i = 0;
+        while(c = this.columns[i++]){
+          j = 0;
+          while(w = c[j++]){
+            if(w.id === id){
+              return w;
+            }
+          }
+        }
+        return null;
+      }
+    }
     
     // Needed for dynamically loading controllers (https://coderwall.com/p/y0zkiw)
     app.config(function($controllerProvider, $compileProvider, $filterProvider, $provide){
@@ -57,6 +80,11 @@
       }
     });
 
+    // This will allow use accrss to the column models in all controllers.
+    app.factory('modelFactory', function modelFactory(){
+      return model;
+    });
+
     /**
      * The widgetItem directive will render the widgets.
      * It will have different behaviour based on the widget that calls it.
@@ -65,29 +93,26 @@
     **/
     app.directive('widgetBody', function ($compile, $http, $templateCache, $q) {
       var linker = function widgetBodyLinker(scope, element, attrs) {
-        // The directive syntax is <div widget-body="{{widget.module}}"></div>
-        // Therefore the name of the widget's module is in the widgetBody attr
-        var module = attrs.widgetBody;
+        scope.module = attrs.module;
+        scope.widgetId = parseInt(attrs.widgetId, 10);
 
-        require('/static/' + module + '/js/controller.js', function(){
-
+        require('/static/' + scope.module + '/js/controller.js', function(){
           // TODO: Find out why passing a function that reads the widget-body attribute
           // to the templateUrl in the Directive Definition Map doesn't work ...
           $http
-            .get('/static/' + module + '/templates/widget.html', { cache: $templateCache })
+            .get('/static/' + scope.module + '/templates/widget.html', { cache: $templateCache })
             .success(function(html){
               element.html(html);
             })
             .then(function(response){
               element.replaceWith( $compile(element.html())(scope) )
             });
-
-          scope.contents = module;
         });
       }
 
       return {
-        restrict: "A",
+        restrict: "E",
+        replace: true,
         link: linker,
         scope: {}
       };
@@ -95,28 +120,23 @@
 
 
     // Takes care of displaying widgets
-    app.controller('MainController', function($scope){
-      
+    app.controller('MainController', function($scope, $timeout, modelFactory){
       $scope.parentData = "This is parent data";
+      $scope.columns = modelFactory.columns;
+
+      // This needs to be defined
+      $scope.widgetboxOnWidgetMove = function(sourceColumn, sourcePosition, targetColumn, targetPosition){
+        $scope.$apply(function(){
+          if(targetColumn){
+            var widget = modelFactory.columns[parseInt(sourceColumn, 10)].splice(parseInt(sourcePosition, 10), 1)[0];
+            var target = modelFactory.columns[parseInt(targetColumn, 10)];
+            targetPosition == 'last' ? target.push(widget) : target.splice(parseInt(targetPosition, 10), 0, widget);
+          }
+        });
+      }
       
-      $scope.columns = [
-        [ { title: "Widget 1", module: "rss" } ],
-        [ { title: "Widget 2", module: "comic" } ],
-        [ { title: "Widget 3", module: "rss" } ]
-      ];
-
-      // setTimeout(function(){
-      //   $scope.columns = [
-      //     [ { title: "Widget 3", module: "rss" } ],
-      //     [ { title: "Widget 1", module: "rss" } ],
-      //     [ { title: "Widget 2", module: "comic" } ]
-      //   ];
-      //
-      //   // This works
-      //   $scope.$apply(function(){});
-      // }, 1000);
-
     });
+
 
     // Takes care of user signin and registration
     app.controller('SessionController', function($scope){
@@ -129,7 +149,7 @@
       $scope.newWidget = function(){ console.log("New Widget"); }
       $scope.doLoginOrRegister = function(){ console.log("Login/Register"); }
     });
-
+        
   </script>
 </html>
 

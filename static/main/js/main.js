@@ -2,7 +2,7 @@
   
 /**
   Widget layout explanation:
-  
+
     1. The page is divided in columns depending on the viewport width.
        The user can't control the number of columns, they are automatically added and removed
        when the screen width changes. These are all possible configurations

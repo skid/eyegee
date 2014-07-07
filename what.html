@@ -1,0 +1,131 @@
+
+<template id="grid">
+  <div el-id="grid-container">
+    <div class="grid-header">
+      %% for column in config.colums | max: config.pageSize | offset: config.pageSize * config.pageNumber 
+        <div class='header-cell {{ column.sortable | iftrue: "sortable" }}'>
+          {{ column.title }}
+        </div>
+        %% if column.resizable and not $loop.last
+          <div class="resize-handle"></div>
+        %%
+        <div class='header-cell'></div>
+      %%
+    </div>
+
+    <div class="grid-body">
+      %% for item in data
+        <div class="grid-row">
+          %% for column in config.columns
+            <div class='cell {{ column.editable | iftrue: "editable" }}'>
+              {{ item | get: column.name | format: column.type, column.format }}
+              %% if column.editable and not item.__edited
+                <div class='edit-begin'></div>
+              %%
+            </div>
+          %%
+        </div>
+      %%
+    </div>
+  </div>
+</template>
+
+
+<script>
+function $__ui__grid($modules){
+  
+  
+  function init(config, dataset){
+    var gridElement = $modules.useTemplate('grid').getElement('grid-container').css({ opacity: 0 });
+
+    function editStart(elemCell, item, column){
+      var position = elemCell.position();
+      
+      // $modules.resolve() will find the widget from the registered modules or throw an error
+      var widget = $modules.resolve(column.widget);
+      
+      // This will initialize the widget with the parameters from the column configuration
+      widget.init(column.widget);
+      
+      // This will bind the widget's value to the appropriate item's value
+      widget.bindTo({ obj: item, prop: column.name });
+
+      // Adjust the widget's position and size
+      widget.element
+      .css({
+        position: absolute,
+        width: elemCell.width(), 
+        height: elemCell.height(),
+        top: position.top,
+        left: position.left
+      })
+      // This will insert the widget in the table right on top of the edited cell
+      .appendTo(gridElement.find('.grid-body'));
+    }
+
+
+    gridElement.delegate('.edit-begin', {
+      click: function(event, $scope){
+        // $context gives access to the context variables defined in the template
+        // The '.edit-begin' elements are defined within 2 loops which add 2 variables in the scope: item and column
+        editStart(this.parent(), $scope.item, $scope.column);
+      }
+    });
+    
+    gridElement.on('render', function(){
+      this.css({ opacity: 1 });
+    });
+
+    gridElement.applyContext({ data: data, config: gridConfig });
+    gridElement.render();
+  }
+
+  return init;
+}
+</script>
+
+<script>
+  // Usage
+  
+  var cities = [{ val: 'SK', name: 'Skopje' }, { val: 'TE', name: 'Tetovo' }, { val: 'BT', name: 'Bitola' }];
+  var config = {
+    pageSize: 2,
+    pageNumber: 0,
+    columns: [{
+      name:   'name',
+      title:  'Name',
+      type:   'text',
+      widget: '$ui.text'
+    },{
+      name:   'birthday',
+      title:  'Birthday',
+      type:   'date',
+      format: 'dd/mm/yyyy',
+      widget: '$ui.datapicker'
+    },{
+      name:   'salary',
+      title:  'Salary',
+      type:   'number',
+      format: '.2f',
+      widget: '$ui.number'
+    },{
+      name:     'city',
+      title:    'City',
+      type:     'string',
+      widget:   {
+        type: '$ui.combo',
+        choices: cities,    // Passing an object is OK. Even if the cities are loaded asynchronously, we're gonna watch the object for changes.
+        allowCustom: false, 
+      },
+    }]
+  };
+
+  var dataset = [
+    { id: 1, name: 'John Goodman', birthday: new Date(1953, 10, 10), salary: 595300, city: 'SK' },
+    { id: 2, name: 'Jack Sparrow', birthday: new Date(1344, 4, 7), salary: 14400000, city: 'TE' },
+    { id: 3, name: 'Jeal Luc Piccard', birthday: new Date(2409, 1, 12), salary: 0, city: 'SK' }
+  ];
+  
+  var gridel = $modules.ui.grid.init(config, dataset);
+  
+</script>

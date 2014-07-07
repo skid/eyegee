@@ -14,8 +14,8 @@
 @text_normal: #999;
 
 /** Web Fonts **/
-@import url(http://fonts.googleapis.com/css?family=Lobster);
-@import url(http://fonts.googleapis.com/css?family=PT+Sans:400,700);
+// @import url(http://fonts.googleapis.com/css?family=Lobster);
+// @import url(http://fonts.googleapis.com/css?family=PT+Sans:400,700);
 
 /** Reusable classes **/
 .clearfix() {
@@ -127,14 +127,26 @@ header {
 main {
   section {
     float: left;
+    padding-bottom: 200px !important;
 
     &.col-3 {
       box-sizing: border-box;
       width: 33%;
       padding: 10px 5px;
+    }
+    
+    .widget-container {
+      box-sizing: border-box;
+      margin: 0 0 10px;
+      padding: 5px;
+      border: solid 1px #ddd;
     }  
   }
 }
 
-
+.widgetbox-placeholder {
+  height: 100px;
+  background: #ddd;
+  margin: 0 0 10px;
+}
 
