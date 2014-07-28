@@ -1,8 +1,36 @@
 <div ng-controller="RssController">
+  
+  <div ng-show="isEdited">
+    <h3>RSS Widget</h3>
+    
+    <label for="rss-widget-title">Widget Title</label>
+    <input ng-model="widget.title" class=""type="text" id="rss-widget-title">
+    
+    <h4>Sources</h4>
+    
+    <div ng-repeat="source in widget.sources">
+      <span>{{source}}</span>
+      <button ng-click="removeSource($index)">Remove</button>
+    </div>
+
+    <div>
+      <input ng-model="newSource" placeholder="URL to a new feed or website">
+      <button ng-click="addSource()">Save</button>
+    </div>
+
+    <div class="rss-options">
+      <label>Items Displayed</label>
+      <label class="inline"><input type="radio" name="rss_items_count" class="rss-item-count" value="5" checked>5</label>
+      <label class="inline"><input type="radio" name="rss_items_count" class="rss-item-count" value="10">10</label>
+      <label class="inline"><input type="radio" name="rss_items_count" class="rss-item-count" value="15">15</label>
+      <label class="inline"><input type="radio" name="rss_items_count" class="rss-item-count" value="20">20</label>
+      <label class="inline"><input type="radio" name="rss_items_count" class="rss-item-count" value="all">All</label>
+    </div>
+  </div>
+  
   <div ng-repeat="n in [1,2,3,4,5]">
     <p>{{ module }} Item {{n}}</p>
   </div>
-  
   <p>The widget id is bound in the widget-id attribute of the  widget-body directive</p>
   <p>Then in the ComicController it's assigned to the "id" scope attribute: {{ id }}</p>
   <p>This is acquired through the modelFactory. The site name is <b>{{siteName}}</p>

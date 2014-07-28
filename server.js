@@ -24,16 +24,6 @@ function redis_connect(){
 }
 redis_connect();
 
-// The rss and comic modules are simple so we have only dummy apps
-// Other, more complicated modules might have their own .js file or even a node module.
-global.modules = {
-  rss: { name: "rss", app: connect() }, 
-  comic: { name: "comic", app: connect() }
-}
-
-// Each module has its own Connect server for  handling module-specific requests.
-var moduleProxy = connect();
-moduleProxy.use('/rss', modules.rss.app);
 
 // This is the main Connect app for handling boilerplate
 var app = connect();
@@ -45,6 +35,17 @@ app.use('/static', connect.static(__dirname + "/static", {
 
 // Static 404 Sentinel
 app.use('/static', function(req, res, next){
+  res.writeHead(400, "Not Found");
+  res.end("Not Found");
+});
+
+// Serve static before the cookie/form parsers
+app.use('/bower_components', connect.static(__dirname + "/bower_components", { 
+  maxAge: 365 * 24 * 60 * 60 * 1000
+}));
+
+// Static 404 Sentinel
+app.use('/bower_components', function(req, res, next){
   res.writeHead(400, "Not Found");
   res.end("Not Found");
 });
@@ -304,12 +305,6 @@ app.use('/proxy', function(req, res, next){
 });
 
 
-
-// Proxy to modules
-app.use('/module', moduleProxy);
-
-
-
 // Save user and sessions
 app.use('/', function(req, res, next){
   // Registered users keep their data in the user: key
@@ -354,7 +349,6 @@ app.use('/', function(req, res, next){
 });
 
 
-
 // 404 Sentinel
 // Requests that made it here without explicitly requesting "/"
 // are requests that didn't match any other middleware layer, therefore 404 errors
@@ -367,7 +361,6 @@ app.use('/', function(req, res, next){
     next();
   }
 });
-
 
 
 // Render index.html
