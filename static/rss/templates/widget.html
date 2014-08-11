@@ -1,37 +1,47 @@
-<div ng-controller="RssController">
-  
+<div ng-controller="RssController">  
+  <!-- Shown when the widget has the "isEdited" flag set to true -->
   <div ng-show="isEdited">
+    <div ng-show="isWorking">Working...</div>
     <h3>RSS Widget</h3>
     
     <label for="rss-widget-title">Widget Title</label>
-    <input ng-model="widget.title" class=""type="text" id="rss-widget-title">
+    <input ng-model="title" class=""type="text" id="rss-widget-title">
     
     <h4>Sources</h4>
     
-    <div ng-repeat="source in widget.sources">
+    <div ng-repeat="source in sources" ng-class="sourceInfo[source] || ''">
       <span>{{source}}</span>
       <button ng-click="removeSource($index)">Remove</button>
     </div>
 
     <div>
-      <input ng-model="newSource" placeholder="URL to a new feed or website">
+      <input ng-model="newSource" ui-keypress="{13:'addSource()'}" placeholder="URL to a new feed or website">
       <button ng-click="addSource()">Save</button>
     </div>
 
     <div class="rss-options">
       <label>Items Displayed</label>
-      <label class="inline"><input type="radio" name="rss_items_count" class="rss-item-count" value="5" checked>5</label>
-      <label class="inline"><input type="radio" name="rss_items_count" class="rss-item-count" value="10">10</label>
-      <label class="inline"><input type="radio" name="rss_items_count" class="rss-item-count" value="15">15</label>
-      <label class="inline"><input type="radio" name="rss_items_count" class="rss-item-count" value="20">20</label>
-      <label class="inline"><input type="radio" name="rss_items_count" class="rss-item-count" value="all">All</label>
+      <label class="inline"><input type="radio" ng-model="itemCount" value="5" checked>5</label>
+      <label class="inline"><input type="radio" ng-model="itemCount" value="10">10</label>
+      <label class="inline"><input type="radio" ng-model="itemCount" value="15">15</label>
+      <label class="inline"><input type="radio" ng-model="itemCount" value="20">20</label>
+      <label class="inline"><input type="radio" ng-model="itemCount" value="all">All</label>
+    </div>
+    
+    <div>
+      <button ng-click="saveSettings()">Ok</button>
+      <!-- Show the cancel button only for existing widgets -->
+      <button ng-click="saveSettings()" ng-show="!widget.isNew">Cancel</button>
     </div>
   </div>
-  
-  <div ng-repeat="n in [1,2,3,4,5]">
-    <p>{{ module }} Item {{n}}</p>
+
+  <!-- Shown when the widget has the "isEdited" flag set to false -->
+  <div ng-show="!isEdited">
+    <div ng-repeat="item in items|limitTo:itemCount" ng-show="items.length">
+      <p><a href="{{item.link}}" target="_blank">{{ item.title }}</a></p>
+    </div>
+    <div ng-show="!items.length">
+      <p>No RSS items here</p>
+    </div>
   </div>
-  <p>The widget id is bound in the widget-id attribute of the  widget-body directive</p>
-  <p>Then in the ComicController it's assigned to the "id" scope attribute: {{ id }}</p>
-  <p>This is acquired through the modelFactory. The site name is <b>{{siteName}}</p>
 </div>

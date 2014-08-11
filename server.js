@@ -24,6 +24,12 @@ function redis_connect(){
 }
 redis_connect();
 
+// The rss and comic modules are simple so we have only dummy apps
+// Other, more complicated modules might have their own .js file or even a node module.
+global.modules = {
+  rss: { name: "rss" }, 
+  comic: { name: "comic" }
+}
 
 // This is the main Connect app for handling boilerplate
 var app = connect();
@@ -49,6 +55,7 @@ app.use('/bower_components', function(req, res, next){
   res.writeHead(400, "Not Found");
   res.end("Not Found");
 });
+
 
 app.use('/', connect.cookieParser());
 app.use('/', connect.json({ limit: '100kb' }));
@@ -181,50 +188,31 @@ app.use('/state.js', function(req, res, next){
 
 
 // Widget management function
-app.use('/widget', function(req, res, next){  
-  var config = req.body;
-  var id = parseInt(config.id);
+app.use('/widget', function(req, res, next){
+  var widgets    = _.flatten(req.body);
+  var largest_id = 0;
+  var unassigned = [];
 
-  // Check if the widget already exists
-  var widgets  = req.user.widgets;
-  var exists   = id && _.find(widgets, function(w){ return id === w.id; });
-  var position = config.position;
-
-  delete config.position;
-  if(exists) {
-    // When the position key is sent, we want to reorder the widgets around
-    // so that the widget keeps its position respective to the other widgets in the same column.
-    if(position !== undefined) {
-      var widget, i, widgetsBefore = 0;
-
-      for(i = 0; i < req.user.widgets.length; ++i){
-        widget = req.user.widgets[i];
-
-        if(widget.column !== exists.column) {
-          continue;
-        }
-        else if(widget === exists) {
-          break;
-        }
-        widgetsBefore += 1;
-
-        if(widgetsBefore > position) {
-          req.user.widgets.splice(req.user.widgets.indexOf(exists), 1);
-          req.user.widgets.splice(i, 0, exists);
-          break;
-        }
-      }
+  // Find the largest widget ID and all new widgets as well.
+  widgets.forEach(function(w){
+    if(("" + w.id).substr(0, 3) === 'new'){
+      unassigned.push(w);
     }
-
-    _.extend(exists, config);    
-  }
-  else {
-    id = config.id = (widgets.length && _.max(_.pluck(widgets, 'id'))) + 1;
-    req.user.widgets.push(config);
-  }
+    else if(w.id > largest_id){
+      largest_id = w.id;
+    }
+  });
   
+  // Assign consecutive ids to the new widgets
+  unassigned.forEach(function(w){
+    w.id = ++largest_id;
+  });
+
+  // Replace the widgets with the new list
+  req.user.widgets = widgets;
+
   // Set the response body
-  res.body = { status: 'ok', id: id };
+  res.body = { status: 'ok' };
   next();
 });
 
@@ -327,7 +315,6 @@ app.use('/', function(req, res, next){
 });
 
 
-
 // This layer will catch all requests where 'res.body' has been set to something meaningful.
 // Objects and arrays will be serialized to JSON. Strings will be rendered as txt/html.
 app.use('/', function(req, res, next){
@@ -349,6 +336,7 @@ app.use('/', function(req, res, next){
 });
 
 
+
 // 404 Sentinel
 // Requests that made it here without explicitly requesting "/"
 // are requests that didn't match any other middleware layer, therefore 404 errors
@@ -361,6 +349,7 @@ app.use('/', function(req, res, next){
     next();
   }
 });
+
 
 
 // Render index.html
