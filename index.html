@@ -8,24 +8,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- Place favicon.ico and apple-touch-icon(s) in the root directory -->    
+    <link href='http://fonts.googleapis.com/css?family=Roboto:400,100,700,400italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="/static/main/css/styles.css">
+    <link rel="stylesheet" href="/static/main/css/theme.css">
+
     <script src="/bower_components/microload/microload.js"></script>
     <script src="/bower_components/jquery/jquery.min.js"></script>
     <script src="/bower_components/angular/angular.js"></script>
     <script src="/bower_components/angular-route/angular-route.js"></script>
     <script src="/bower_components/angular-widgetbox/angular-widgetbox.js"></script>
     <script src="/bower_components/angular-ui-utils/keypress.js"></script>
+    <script src="/state.js"></script>
+    <script src="/static/main/js/main.js"></script>
   </head>
-  
-  <body>
 
+  <body>
     <header ng-controller="NavigationController">
       <h1 class="main-title">EyeGee</h1>
       <nav class="main">
         <button type="button" id="new-widget-button" ng-click="newWidget()">
-          NW
+          <svg viewBox="0 0 24 24"><use xlink:href="/static/main/img/core-icons.svg#add-circle"></use></svg>
+          New Widget
         </button>
         <button type="button" id="session-button" ng-click="doLoginOrRegister()">
+          <svg viewBox="0 0 24 24"><use xlink:href="/static/main/img/core-icons.svg#accessibility"></use></svg>
           {{ sessionButtonTitle }}
         </button>
       </nav>
@@ -35,10 +42,17 @@
     <main ng-controller="MainController">
 
       <section ng-repeat="column in columns" class="column wb-column col-{{ columns.length }}" widgetbox-column='wb-column' widgetbox-column-id="{{ $index }}">
-        <div ng-repeat="widget in column" class="widget-container wb-widget" widgetbox-widget='wb-widget' widgetbox-draghandle="h3" widgetbox-widget-id="{{ $index }}">
-          <h3>{{ widget.title }}</h3>
-          <a href="javascript:;" ng-click="removeWidget(widget)">Remove</a>
-          <a href="javascript:;" ng-click="editWidget(widget)">Settings</a>
+        <div ng-repeat="widget in column" class="widget-container wb-widget" widgetbox-widget='wb-widget' widgetbox-draghandle=".widget-header" widgetbox-widget-id="{{ $index }}">
+          <div class="widget-header">
+            <h3 ng-show="!widget.link">{{ widget.title }}</h3>
+            <h3 ng-show="widget.link"><a href="{{ widget.link }}" target="_blank">{{ widget.title }}</a></h3>
+            <a href="javascript:;" ng-click="removeWidget(widget)" ng-show="widget.$scope.isEdited || !widget.module">
+              <svg viewBox="0 0 24 24"><use xlink:href="/static/main/img/core-icons.svg#clear"></use></svg>
+            </a>
+            <a href="javascript:;" ng-click="editWidget(widget)" ng-show="!widget.$scope.isEdited">
+              <svg viewBox="0 0 24 24"><use xlink:href="/static/main/img/core-icons.svg#settings"></use></svg>
+            </a>
+          </div>
           <widget-picker ng-show="!widget.module">
             <h5>What kind?</h5>
             <p ng-repeat="module in modules" ng-click="setModule(widget.id, module)">{{module}}</p>
@@ -53,7 +67,5 @@
     <footer></footer>
 
   </body>
-  <script src="/state.js"></script>
-  <script src="/static/main/js/main.js"></script>
 </html>
 

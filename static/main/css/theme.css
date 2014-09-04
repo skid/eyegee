@@ -1,0 +1,53 @@
+body {
+  font-family: "Open Sans";
+}
+input {
+  color: rgba(0, 0, 0, 0.87);
+  border: solid 1px #cfd8dc;
+}
+input::-webkit-input-placeholder,
+input :-moz-placeholder,
+input :-ms-input-placeholder {
+  color: #eceff1;
+}
+input:focus {
+  border: solid 1px #ff9800;
+  outline: none;
+}
+header {
+  background-color: #f69988;
+}
+header h1 {
+  color: #b0120a;
+}
+header nav.main button {
+  background-color: #e84e40;
+  color: rgba(255, 255, 255, 0.8);
+}
+header nav.main button svg {
+  fill: #f69988;
+}
+.widget-container {
+  border-color: #f69988;
+}
+.widget-container .widget-header {
+  background-color: #e84e40;
+  color: rgba(255, 255, 255, 0.8);
+}
+.widget-container .widget-header a {
+  color: #ffe0b2;
+  text-decoration: none;
+}
+.widget-container .widget-header a svg {
+  fill: #ffe0b2;
+}
+.widget-bottom-controls {
+  background-color: #f69988;
+}
+.widget-bottom-controls button {
+  background-color: #e84e40;
+  color: rgba(255, 255, 255, 0.8);
+}
+.widgetbox-placeholder {
+  background: #fdeae7;
+}

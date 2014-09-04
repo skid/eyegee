@@ -13,48 +13,15 @@
 }
 /** Main elements **/
 * {
-  font-family: "PT Sans";
   margin: 0;
   padding: 0;
 }
 body {
-  color: #999999;
-  font-size: 13px;
   overflow-y: scroll;
   min-width: 320px !important;
 }
-input {
-  color: #0066ff;
-  padding: 5px;
-  border: solid 1px #ddd;
-  font-size: 14px;
-}
-input:focus {
-  outline: solid 2px #0066ff;
-}
 button {
   cursor: pointer;
-  border: none;
-  background: transparent;
-  font-size: 14px;
-  padding: 5px;
-}
-button:active,
-button:focus,
-button:active,
-button:focus {
-  outline: none;
-}
-button:focus {
-  color: #cceeff;
-  outline: solid 2px #0066ff;
-  outline-offset: 1px;
-}
-a {
-  color: #0ca5b0;
-}
-a:visited {
-  color: #a5b3aa;
 }
 /* Header section */
 header {
@@ -63,7 +30,6 @@ header {
   height: 75px;
   min-width: 320px;
   border-top: solid 1px transparent;
-  border-bottom: solid 1px #0066ff;
   /* Brand title */
   /* Navigation Buttons at the top of the page */
 }
@@ -75,20 +41,30 @@ header h1 {
   padding: 0;
   margin: 0 0 0 -100px;
   left: 50%;
-  color: #0066ff;
   font-size: 50px;
   text-align: center;
 }
 header nav.main {
   position: absolute;
   padding: 0;
-  margin: 0 10px;
-  bottom: 0px;
+  margin: 0 6px;
+  top: 0px;
 }
 header nav.main button {
-  border: solid 1px #0ca5b0;
+  border: none;
   display: inline-block;
-  margin: 5px 10px;
+  margin: 0 5px 5px 0;
+  padding: 4px 8px;
+  font-size: 14px;
+  width: 100px;
+  height: 65px;
+  outline: none;
+}
+header nav.main button svg {
+  display: block;
+  width: 32px;
+  height: 32px;
+  margin: 0px auto 5px;
 }
 main section {
   float: left;
@@ -114,14 +90,78 @@ main section.col-4 {
   width: 25%;
   padding: 10px 5px;
 }
-main section .widget-container {
+.widget-container {
   box-sizing: border-box;
-  margin: 0 0 10px;
+  margin-bottom: 15px;
+  border: solid 1px transparent;
+}
+.widget-container .widget-header {
   padding: 5px;
-  border: solid 1px #ddd;
+  margin-bottom: 5px;
+  *zoom: 1;
+}
+.widget-container .widget-header:before,
+.widget-container .widget-header:after {
+  content: " ";
+  display: table;
+}
+.widget-container .widget-header:after {
+  clear: both;
+}
+.widget-container .widget-header:before,
+.widget-container .widget-header:after {
+  content: " ";
+  display: table;
+}
+.widget-container .widget-header:after {
+  clear: both;
+}
+.widget-container .widget-header h3 {
+  float: left;
+  vertical-align: middle;
+  font-weight: normal;
+  font-size: 16px;
+}
+.widget-container .widget-header > a {
+  float: right;
+  margin-left: 5px;
+  vertical-align: middle;
+  font-size: 12px;
+}
+.widget-container .widget-header > a svg {
+  height: 16px;
+  width: 16px;
+}
+.widget-container .widget-bottom-controls {
+  *zoom: 1;
+  margin: -5px;
+  padding: 0 5px;
+}
+.widget-container .widget-bottom-controls:before,
+.widget-container .widget-bottom-controls:after {
+  content: " ";
+  display: table;
+}
+.widget-container .widget-bottom-controls:after {
+  clear: both;
+}
+.widget-container .widget-bottom-controls:before,
+.widget-container .widget-bottom-controls:after {
+  content: " ";
+  display: table;
+}
+.widget-container .widget-bottom-controls:after {
+  clear: both;
+}
+.widget-container .widget-bottom-controls button {
+  float: right;
+  border: none;
+  display: inline-block;
+  margin: 5px 0 5px 5px;
+  padding: 3px 6px;
+  font-size: 12px;
 }
 .widgetbox-placeholder {
   height: 100px;
-  background: #ddd;
   margin: 0 0 10px;
 }

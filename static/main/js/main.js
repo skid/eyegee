@@ -5,7 +5,7 @@
     _guid: 0,
     _isInitialized: false,
     _columnCount: 0,
-    
+
     // A reference to the Angular $http service
     $http: null,
     
@@ -162,7 +162,15 @@
       });
     }
   }
-  
+
+  // Register some filters
+  app.filter('loopRss', function() {
+    // This filter is similar to the limitTo filter, except that
+    // passing the string "all" as the limit parameter will loop over all array elements.
+    return function(input, itemCount) {
+      return itemCount === 'all' ? input : input.slice(0, itemCount);
+    };
+  })
 
   // Needed for dynamically loading controllers (https://coderwall.com/p/y0zkiw)
   app.config(function($controllerProvider, $compileProvider, $filterProvider, $provide){
@@ -213,6 +221,7 @@
         scope.widgetId = attrs.widgetId;
 
         if(val){
+          microload('/static/' + val + '/css/styles.css');
           microload('/static/' + val + '/js/controller.js', function(){
             // TODO: Find out why passing a function that reads the widget-body attribute
             // to the templateUrl in the Directive Definition Map doesn't work ...
@@ -290,10 +299,12 @@
       widget.__editToken  = true;
       widget.module = module;
     }
-    
+
     $scope.removeWidget = function(widget){
-      model.removeWidget(widget);
-      model.saveState();
+      if(confirm("Remove this widget?")){
+        model.removeWidget(widget);
+        model.saveState();
+      }
     }
     
     $scope.editWidget = function(widget){
@@ -327,3 +338,4 @@
     }
   });    
 })();
+

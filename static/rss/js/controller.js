@@ -278,12 +278,7 @@
 
     return feed;
   }
-
-
-
-
-
-
+  
   /**
    * Angular controller for RSS widgets.
    * Has a separate instance for each widget on the page.
@@ -382,9 +377,9 @@
         $scope.sourceInfo = {};
         $scope.isEdited = false;
         
-        // Inform the model that a widget has changed and lat it handle the storage.
+        // Inform the model that a widget has changed and let it handle the storage.
         model.saveState();
-        
+
         // Load the feeds and display them
         loadFeeds();
       }
@@ -401,6 +396,7 @@
         if(feeds.length === 1) {
           $scope.title || (widget.title = feeds[0].title || "No title");
           $scope.items = feeds[0].items;
+          $scope.widget.link = feeds[0].link;
         }
         else if (feeds.length > 1){
           $scope.title || (widget.title = "Multiple Feeds");
@@ -408,6 +404,7 @@
           feeds.forEach(function(feed){
             $scope.items = $scope.items.concat(feed.items);
           });
+          console.log($scope.items);
         }
         else {
           $scope.items = null;

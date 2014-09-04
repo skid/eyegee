@@ -1,25 +1,34 @@
 <div ng-controller="RssController">  
   <!-- Shown when the widget has the "isEdited" flag set to true -->
-  <div ng-show="isEdited">
-    <div ng-show="isWorking">Working...</div>
-    <h3>RSS Widget</h3>
-    
-    <label for="rss-widget-title">Widget Title</label>
-    <input ng-model="title" class=""type="text" id="rss-widget-title">
-    
-    <h4>Sources</h4>
-    
-    <div ng-repeat="source in sources" ng-class="sourceInfo[source] || ''">
-      <span>{{source}}</span>
-      <button ng-click="removeSource($index)">Remove</button>
-    </div>
+  <div class="rss-edit-panel" ng-show="isEdited">
+    <div class="rss-loading-overlay" ng-show="isWorking"></div>
 
-    <div>
+    <div class="rss-edit-section">
+      <label class="rss-widget-label">Widget Title</label>
+      <input ng-model="title" class="rss-widget-title" type="text" >
+    </div>
+    
+    <div class="rss-edit-section">
+      <label ng-show="sources.length" class="rss-widget-label">Sources</label>
+      <div ng-show="sources.length" class="rss-widget-sources-box">
+        <div ng-repeat="source in sources" ng-class="sourceInfo[source] || ''">
+          <span>{{source}}</span>
+          <button ng-click="removeSource($index)">
+            <svg viewBox="0 0 24 24"><use xlink:href="/static/main/img/core-icons.svg#clear"></use></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="rss-edit-section">
+      <label class="rss-widget-label">Add New Source</label>
       <input ng-model="newSource" ui-keypress="{13:'addSource()'}" placeholder="URL to a new feed or website">
-      <button ng-click="addSource()">Save</button>
+      <button ng-click="addSource()">
+        <svg viewBox="0 0 24 24"><use xlink:href="/static/main/img/core-icons.svg#save"></use></svg>
+      </button>
     </div>
 
-    <div class="rss-options">
+    <div class="rss-edit-section">
       <label>Items Displayed</label>
       <label class="inline"><input type="radio" ng-model="itemCount" value="5" checked>5</label>
       <label class="inline"><input type="radio" ng-model="itemCount" value="10">10</label>
@@ -28,7 +37,7 @@
       <label class="inline"><input type="radio" ng-model="itemCount" value="all">All</label>
     </div>
     
-    <div>
+    <div class="widget-bottom-controls">
       <button ng-click="saveSettings()">Ok</button>
       <!-- Show the cancel button only for existing widgets -->
       <button ng-click="saveSettings()" ng-show="!widget.isNew">Cancel</button>
@@ -36,12 +45,14 @@
   </div>
 
   <!-- Shown when the widget has the "isEdited" flag set to false -->
-  <div ng-show="!isEdited">
-    <div ng-repeat="item in items|limitTo:itemCount" ng-show="items.length">
+  <div ng-show="!isEdited" class="rss-item-feed">
+    <div ng-repeat="item in items|loopRss:itemCount" ng-show="items.length" class="rss-item">
       <p><a href="{{item.link}}" target="_blank">{{ item.title }}</a></p>
+      <div class="rss-slide-tab" ng-show="item.comments">
+        <a href="{{item.comments}}" target="_blank" ng-show="item.comments">Comments</a>
+      </div>
     </div>
-    <div ng-show="!items.length">
-      <p>No RSS items here</p>
-    </div>
+    <div ng-show="!items.length && !loading">No RSS items</div>
+    <div ng-show="loading" class="rss-loading-overlay"></div>
   </div>
 </div>

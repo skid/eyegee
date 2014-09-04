@@ -1,0 +1,88 @@
+// The Color Palette
+@primary1: #f69988;
+@primary5: #e84e40;
+@primary7: #b0120a;
+
+@accent1:  #ffe0b2;
+@accent5:  #ff9800;
+@accent7:  #f57c00;
+
+@grey50:  #eceff1;
+@grey100: #cfd8dc;
+
+// Text colors
+@text_darkest:  rgba(0, 0, 0, 0.87);
+@text_darker:   rgba(0, 0, 0, 0.54);
+@text_dark:     rgba(0, 0, 0, 0.26);
+@text_lightest: rgba(255, 255, 255, 0.8);
+@text_lighter:  rgba(255, 255, 255, 0.54);
+@text_light:    rgba(255, 255, 255, 0.26);
+
+@text_accent:   #b2ebf2;
+
+body {
+  font-family: "Open Sans";
+}
+
+input {
+  color: @text_darkest;
+  border: solid 1px @grey100;
+  
+  &::-webkit-input-placeholder, :-moz-placeholder, :-ms-input-placeholder {
+    color: @grey50;
+  }
+  
+  &:focus {
+    border: solid 1px @accent5;
+    outline: none;
+  }
+}
+
+header {
+  background-color: @primary1;
+  h1 {
+    color: @primary7;
+  }
+  
+  nav.main {
+    button {
+      background-color: @primary5;
+      color: @text_lightest;
+      
+      svg {
+        fill: @primary1;
+      }
+    }
+  }
+}
+
+.widget-container {
+  border-color: @primary1;
+  
+  .widget-header {
+    background-color: @primary5;
+    color: @text_lightest;
+    
+    a {
+      color: @accent1;
+      text-decoration: none;
+      
+      svg {
+        fill: @accent1;
+      }
+    }
+  }
+}
+
+.widget-bottom-controls {
+  background-color: @primary1;
+    
+  button {
+    background-color: @primary5;
+    color: @text_lightest;
+  }
+}
+
+.widgetbox-placeholder {
+  background: lighten(@primary1, 20%);
+}
