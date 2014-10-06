@@ -61,7 +61,7 @@
       this.columns.forEach(function(c){
         widgets = widgets.concat(c);
       });
-
+      
       i = 0;
       columns = new Array(colCount);
       while(i < colCount) { 
@@ -85,7 +85,6 @@
         }
         columns[col][pos] = widget;
       }
-
       this.columns = columns;
     },
     
@@ -134,6 +133,8 @@
     },
 
     saveState: function(callback){
+      this.setPositionPreferences();
+      
       // Filter out only JSON-serializable properties of the widgets.
       // We will always save the entire state because we don't expect much data.
       var columns = this.columns.map(function(c){

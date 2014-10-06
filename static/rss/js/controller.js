@@ -294,6 +294,7 @@
     // These are used outside the edit mode
     $scope.itemCount  = widget.itemCount || 10;
     $scope.items      = [];
+    $scope.title      = widget.title || "";
     
     widget.editBegin = function(){
       $scope.sources    = widget.sources ? widget.sources.slice() : [];
@@ -303,7 +304,6 @@
       });
 
       $scope.newSource  = "";
-      $scope.title      = widget.title || "";
       $scope.errors     = [];
       $scope.itemCount  = widget.itemCount || 10;
       $scope.items      = [];
@@ -404,7 +404,6 @@
           feeds.forEach(function(feed){
             $scope.items = $scope.items.concat(feed.items);
           });
-          console.log($scope.items);
         }
         else {
           $scope.items = null;
