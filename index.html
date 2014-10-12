@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Eye Gee</title>
-    <meta name="description" content="Google Replacement">
+    <meta name="description" content="iGoogle Replacement">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- Place favicon.ico and apple-touch-icon(s) in the root directory -->    
@@ -23,19 +23,41 @@
     <script src="/static/main/js/main.js"></script>
   </head>
 
-  <body>
+  <body>    
     <header ng-controller="NavigationController">
-      <h1 class="main-title">EyeGee</h1>
-      <nav class="main">
-        <button type="button" id="new-widget-button" ng-click="newWidget()">
-          <svg viewBox="0 0 24 24"><use xlink:href="/static/main/img/core-icons.svg#add-circle"></use></svg>
-          New Widget
-        </button>
-        <button type="button" id="session-button" ng-click="doLoginOrRegister()">
-          <svg viewBox="0 0 24 24"><use xlink:href="/static/main/img/core-icons.svg#accessibility"></use></svg>
-          {{ sessionButtonTitle }}
-        </button>
-      </nav>
+      
+      <section id="header-section">
+        <h1 class="main-title">EyeGee</h1>
+        <nav class="main">
+          <button type="button" id="new-widget-button" ng-click="newWidget()">
+            <svg viewBox="0 0 96 96"><use xlink:href="/static/main/icons.svg#add-circle"></use></svg> Add a widget
+          </button>
+          <button type="button" id="session-button" ng-click="toggleSessionForm()">
+            <svg viewBox="0 0 96 96"><use xlink:href="/static/main/icons.svg#accessibility"></use></svg> {{ session.buttonTitle }}
+          </button>
+        </nav>
+      </section>
+
+      <section id="login-section" ng-class="{shown: session.isFormOpen, user: 1}" ng-init="isLoginOpen=false">
+        <div ng-show="session.isAnon" class="form-row form-fields">
+          Please type your <input ng-model="session.email" placeholder="email" id="input-email"> 
+          and <input ng-model="session.password" type="password" placeholder="password" id="input-password">
+          and press <button ng-click="doSignIn()">Login</button>
+          or <input ng-model="session.password2" type="password" placeholder="repeat the password" id="input-password2"> 
+          and <button ng-click="doRegister()">Sign Up</button> already!
+        </div>
+        <div ng-show="!session.isAnon" class="form-row form-fields">
+          You are logged in. You can now <button ng-click="doSignOut()">Logout</button>
+          or <button ng-click="doRegister(true)">Update</button>
+          your <input ng-model="session.email" placeholder="email" id="input-email">
+          and <input ng-model="session.password" type="password" placeholder="password" id="input-password">
+          but first <input ng-model="session.password2" type="password" placeholder="repeat the password" id="input-password2"> 
+        </div>
+        <div class="form-errors">
+          <p ng-show="session.error">{{session.error}}</p>
+        </div>
+      </section>
+      
     </header>
     
     <!-- The column arrangement of widgets is created in a separate angular directive -->

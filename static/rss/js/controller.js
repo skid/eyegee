@@ -363,6 +363,7 @@
           break;
         }
       }
+
       if(valid){
         // Stop editing, remove invalid sources and update the widget source list
         widget.itemCount = $scope.itemCount;
@@ -394,7 +395,7 @@
       function done(){
         $scope.loading = false;
         if(feeds.length === 1) {
-          $scope.title || (widget.title = feeds[0].title || "No title");
+          $scope.title !== "New Widget" || !$scope.title || (widget.title = feeds[0].title || "No title");
           $scope.items = feeds[0].items;
           $scope.widget.link = feeds[0].link;
         }
@@ -470,7 +471,7 @@
       $scope.sources.splice(index, 0, source);
 
       // Mark the source as being checked
-      $scope.sourceInfo[ source ] = "checking";
+      $scope.sourceInfo[source] = "checking";
 
       // Check the source
       checkSource(source, function(result){

@@ -3,7 +3,6 @@
 This is a small stand-alone node.js application that will replace iGoogle.
 As much as possible and as much as I have time to work on it.
 
-
 ## Development Setup
 
 For Eyegee to run you will need to install Node.js and Redis.  

@@ -21,7 +21,7 @@
 @text_accent:   #b2ebf2;
 
 body {
-  font-family: "Open Sans";
+  font-family: Roboto;
 }
 
 input {
@@ -38,21 +38,35 @@ input {
   }
 }
 
-header {
+button {
+  border: solid 1px @primary5;
+  background-color: @primary5;
+  color: @text_lightest;
+  outline: none;
+
+  svg { 
+    fill: @primary1; 
+  }
+  
+  &:focus {
+    border: solid 1px @text_lightest;
+    outline: solid 1px @primary5;
+  }
+}
+
+section#header-section {
   background-color: @primary1;
   h1 {
     color: @primary7;
   }
+}
+
+section#login-section {
+  background: @grey50;
   
-  nav.main {
-    button {
-      background-color: @primary5;
-      color: @text_lightest;
-      
-      svg {
-        fill: @primary1;
-      }
-    }
+  div.form-errors {
+    margin-top: 5px;
+    color: @primary5;
   }
 }
 

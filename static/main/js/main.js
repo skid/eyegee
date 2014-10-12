@@ -1,9 +1,22 @@
 (function(){
+  /**
+   * Helper used in the main module
+  **/
+  function debounce(fn, delay) {
+    var timer = null;
+    return function () {
+      var context = this, args = arguments;
+      clearTimeout(timer);
+      timer = setTimeout(function () {
+        fn.apply(context, args);
+      }, delay);
+    };
+  }
+  
   var app = angular.module('eyegeeApp', ['ngRoute', 'widgetbox', 'ui.keypress']);
 
   var model = {
     _guid: 0,
-    _isInitialized: false,
     _columnCount: 0,
 
     // A reference to the Angular $http service
@@ -14,6 +27,10 @@
     // The global variable USER keeps info about the user's widgets.
     columns: [ USER.widgets ],
     
+    guid: function() {
+      return ++this._guid;
+    },
+
     /**
       Widget layout explanation:
 
@@ -48,28 +65,38 @@
 
     **/
     setWindowSize: function(ww){
-      var min, prev, col, pos, colCount, i = 0, columns = [], widgets = [];
+      var colCount = 
+        ww <= 480 
+          ? 1 
+          : ww <= 960 
+            ? 2 
+            : ww <= 1440 
+              ? 3 
+              : 4;
 
-      colCount = ww <= 480 ? 1 : ww <= 960 ? 2 : ww <= 1440 ? 3 : 4;
       if( this._columnCount === colCount ){
-        // Don't do unnecessary work
-        return;
+        return; // Don't do unnecessary work
       }
       this._columnCount = colCount;
+      this.setColumns(this.columns);
+    },
+
+    setColumns: function(widgets){
+      var col, pos, min, preference, widget, flat = [];
 
       // Get a flat list of the widgets
-      this.columns.forEach(function(c){
-        widgets = widgets.concat(c);
+      widgets.forEach(function(c){ 
+        flat = flat.concat(c); 
       });
-      
-      i = 0;
-      columns = new Array(colCount);
-      while(i < colCount) { 
-        columns[i++] = []; 
+
+      var i = 0;
+      var columns = new Array(this._columnCount);
+      while(i < this._columnCount) { 
+        columns[i++] = [];
       }
 
-      while(widget = widgets.shift()){ 
-        if(preference = widget[colCount]){
+      while(widget = flat.shift()){ 
+        if(preference = widget[this._columnCount]){
           col = preference.col;
           pos = preference.pos;
         }
@@ -85,9 +112,12 @@
         }
         columns[col][pos] = widget;
       }
-      this.columns = columns;
+
+      this.$scope.columns = this.columns = columns;
+      // Check if the digest loop is in progress
+      this.$scope.$$phase || this.$scope.$apply();
     },
-    
+
     setPositionPreferences: function(){
       var i, j, column;
       for(i=0; i<this.columns.length; ++i){
@@ -96,10 +126,6 @@
           column[j][ this._columnCount ] = { col: i, pos: j };
         }
       }
-    },
-
-    guid: function() {
-      return ++this._guid;
     },
 
     getWidgetById: function(id){
@@ -115,7 +141,7 @@
       }
       return null;
     },
-    
+
     addWidget: function(){
       // TODO: Determine next widget position
       this.columns[0].push({ module: null, id: "new-" + this.guid(), title: "New Widget" });
@@ -150,9 +176,9 @@
       });
 
       this.$http({
-        url: '/widget',
-        method: "POST",
-        data: JSON.stringify(columns),
+        url:     "/widget",
+        method:  "POST",
+        data:    JSON.stringify(columns),
         headers: {'Content-Type': 'application/json'}
       })
       .success(function(data, status, headers, config){
@@ -164,14 +190,14 @@
     }
   }
 
-  // Register some filters
+  // Need to account for the "all" option instead of just numbers
   app.filter('loopRss', function() {
     // This filter is similar to the limitTo filter, except that
     // passing the string "all" as the limit parameter will loop over all array elements.
     return function(input, itemCount) {
       return itemCount === 'all' ? input : input.slice(0, itemCount);
     };
-  })
+  });
 
   // Needed for dynamically loading controllers (https://coderwall.com/p/y0zkiw)
   app.config(function($controllerProvider, $compileProvider, $filterProvider, $provide){
@@ -187,15 +213,10 @@
   /**
    * We need access to the model in different controllers spread across different files.
    * which are loaded dynamically. That's why we make a factory that will return the model.
-   * On the first call, we also need to attach dependencies angular services.
+   * The MainController $scope and $http service are attached to the model 
+   * when the MainController function is executed.
   **/
-  app.factory('model', function($http){
-    if(!model._isInitialized) {
-      model.$http = $http;
-      model._isInitialized = true;
-    }
-    return model;
-  });
+  app.factory('model', function($http){ return model; });
 
   /**
    * The widgetItem directive will render the widgets.
@@ -205,8 +226,8 @@
    *
    * Check: http://onehungrymind.com/angularjs-dynamic-templates/
   **/
-  app.directive('widgetBody', function ($compile, $http, $templateCache, $q) {
-    
+  app.directive('widgetBody', function ($compile, $http, $templateCache) {
+
     function widgetBodyLinker(scope, element, attrs) {
       
       /**
@@ -242,40 +263,30 @@
         }
       });
     }
-
     return { restrict: "E", replace: true, link: widgetBodyLinker, scope: {} };
   });
+
 
 
   /**
    * The MainController provides a scope for the model and the callback
    * for the angular-widgetbox plugin.
   **/
-  app.controller('MainController', function($scope, $timeout, $window, model){
-    function debounce(fn, delay) {
-      var timer = null;
-      return function () {
-        var context = this, args = arguments;
-        clearTimeout(timer);
-        timer = setTimeout(function () {
-          fn.apply(context, args);
-        }, delay);
-      };
-    }
+  app.controller('MainController', function($scope, $timeout, $window, $http, model){
+    model.$scope = $scope;
+    model.$http = $http;
     
     // The number of columns depends on the window width.
     // We need to initialize a listener and the number of columns.
     // The model takes care of distributing the widgets among the columns.
     angular.element($window).bind('resize', debounce(function(){
       model.setWindowSize($window.innerWidth);
-      $scope.columns = model.columns;
-      $scope.$apply();
     }, 250));
     model.setWindowSize($window.innerWidth);
 
     $scope.columns = model.columns;
     $scope.modules = MODULES;
-        
+
     // The angular-widgetbox directive calls this method when a widget is moved
     $scope.widgetboxOnWidgetMove = function(sourceColumn, sourcePosition, targetColumn, targetPosition){
       $scope.$apply(function(){
@@ -312,31 +323,106 @@
       widget.module && widget.editBegin();
     }
   });
-
-
-  /** 
-   * Takes care of user signin and registration
+  
+  /**
+   * Takes care of the navigation buttons, and user registration.
   **/
-  app.controller('SessionController', function($scope){
+  app.controller('NavigationController', function($scope, $http, model){
     
-  });
+    $scope.session = {
+      // State variables
+      isAnon:     !USER.email,
+      isFormOpen: false,
+      
+      // Form field values
+      email:        USER.email || "",
+      password:     "",
+      password2:    "",
+      
+      // Titles
+      buttonTitle:  "",
+      
+      // Error moessages
+      error: "",
+      
+      setSessionButtonTitle: function(){
+        this.buttonTitle = this.isFormOpen ? "Forget That" : this.isAnon ? "Login/Register" : "Profile";
+      }
+    }
 
+    // Set this automatically
+    $scope.session.setSessionButtonTitle();
 
-  /** 
-   * Takes care of the navigation buttons
-  **/
-  app.controller('NavigationController', function($scope, model){
-    $scope.sessionButtonTitle = "Sign In";
+    /**
+     * Opens the panel where the user email/password controls are located.
+    **/
+    $scope.toggleSessionForm = function(){ 
+      $scope.session.isFormOpen = !$scope.session.isFormOpen;
+      $scope.session.setSessionButtonTitle();
+    }
+    
+    /**
+     * Logs the user out
+     * It modifies the global USER variable.
+    **/
+    $scope.doSignOut = function(){
+      window.location = "/signout";
+    }
+    
+    /**
+     * Logs the user in
+     * It modifies the global USER variable on succesful login.
+    **/
+    $scope.doSignIn = function(){      
+      if(!$scope.session.email || !$scope.session.password){
+        return $scope.session.error = "Email and password are required";
+      }
+      loginOrRegister("/signin");
+    }
+    
+    /**
+     * Registers the user and immeidately logs him in.
+    **/
+    $scope.doRegister = function(update){
+      if(!$scope.session.email || !$scope.session.password || !$scope.session.password2){
+        return $scope.session.error = "To " + (update ? "change your email or password" : "register") + ", you'll need to fill out all three fields";
+      }
+      if($scope.session.password !== $scope.session.password2){
+        return $scope.session.error = "Your passwords don't match";
+      }
+      loginOrRegister("/register");
+    }
+    
+    function loginOrRegister(url){
+      $scope.session.error = "";
 
-    // Adding a new widget
+      $http({ 
+        url: url, 
+        method: "POST",
+        headers: {'Content-Type': 'application/json'},
+        data: JSON.stringify({ email: $scope.session.email, password: $scope.session.password })
+      })
+      .success(function(data, status, headers, config){
+        window.USER = data.user;
+        $scope.session.isAnon = false;
+        $scope.session.email = data.user.email;
+        $scope.session.password = $scope.session.password2 = "";
+        $scope.session.isFormOpen = false;
+        $scope.session.setSessionButtonTitle();
+        
+        model.setColumns(USER.widgets);
+      })
+      .error(function(data, status, headers, config){ 
+        $scope.session.error = data.message;
+      });
+    }
+
+    /**
+     * Adds new widget to the first column, then scrolls to it.
+    **/
     $scope.newWidget = function(){ 
       model.addWidget();
       // TODO: Scroll to widget
-    }
-
-    $scope.doLoginOrRegister = function(){ 
-      console.log("Login/Register"); 
-    }
+    }    
   });    
 })();
-

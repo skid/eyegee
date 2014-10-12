@@ -1,5 +1,5 @@
 body {
-  font-family: "Open Sans";
+  font-family: Roboto;
 }
 input {
   color: rgba(0, 0, 0, 0.87);
@@ -14,18 +14,31 @@ input:focus {
   border: solid 1px #ff9800;
   outline: none;
 }
-header {
-  background-color: #f69988;
-}
-header h1 {
-  color: #b0120a;
-}
-header nav.main button {
+button {
+  border: solid 1px #e84e40;
   background-color: #e84e40;
   color: rgba(255, 255, 255, 0.8);
+  outline: none;
 }
-header nav.main button svg {
+button svg {
   fill: #f69988;
+}
+button:focus {
+  border: solid 1px rgba(255, 255, 255, 0.8);
+  outline: solid 1px #e84e40;
+}
+section#header-section {
+  background-color: #f69988;
+}
+section#header-section h1 {
+  color: #b0120a;
+}
+section#login-section {
+  background: #eceff1;
+}
+section#login-section div.form-errors {
+  margin-top: 5px;
+  color: #e84e40;
 }
 .widget-container {
   border-color: #f69988;

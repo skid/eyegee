@@ -73,7 +73,7 @@ app.use('/', function(req, res, next){
     if( !user ) {
       req.session.uid = utils.guid();
       // User default settings
-      req.user = { widgets: [], columns: 3 };
+      req.user = { widgets: [] };
       next();
     }
     
@@ -107,11 +107,11 @@ app.use('/', function(req, res, next){
 app.use("/signout", function(req, res, next){
   req.user = { widgets: [] };
   db.del("sess:" + req.session.uid, function(){
-    res.body = { status: "ok" };
-    next();
+    res.body = "";
+    res.writeHead(302, "Found", {location: "/"})
+    res.end();
   });
 });
-
 
 
 // This layer will respond to requests to /signin
@@ -141,24 +141,36 @@ app.use('/signin', function(req, res, next){
 // This layer will respond to requests to /register and will 
 // register a new user if an email and password is provided
 app.use("/register", function(req, res, next){
-  // TODO: Do not allow re-registering of the same email
 
-  // To register a user we simply need to set the email and password
-  // to the anonymous session object. The middleware layer that saves the session
-  // will push this to the database therefore creating a new user account.
-  if(req.body.email && req.body.password) {
-    req.user.password = utils.hashPassword(req.body.password);
-    req.user.email = req.body.email;
-    res.body = { status: 'ok', user: _.clone(req.user) };
+  // Check if user with that email exists
+  db.get('user:' + req.body.email, function(err, user){
+    if(err){ return next(err); }
+    
+    // If that email exists and it's not the currently logged user's email
+    // disallow changes.
+    if(user && user.email !== req.user.email){
+      res.body = { status: "error", statusCode: "401", message: "That account is already taken" };
+      next();
+    }
+    // To register a user we simply set the email and password to the anonymous session object. 
+    // In case the session is not anonymous, this call will modify the user's profile.
+    else if(req.body.email && req.body.password){
+      db.rename("user:" + req.user.email, "user:" + req.body.email, function(){
+        req.user.password = utils.hashPassword(req.body.password);
+        req.user.email    = req.body.email;
+        res.body          = { status: 'ok', user: _.clone(req.user) };
 
-    // Never send passwords out
-    delete res.body.user.password;
-  }
-  else {
-    res.body = { status: 'error', statusCode: 400, message: 'Email or Password missing' };
-  }
-
-  next();
+        // Never send passwords out
+        delete res.body.user.password;
+        next();
+      });
+    }
+    else {
+      // Frontend should not allow this, but alas.
+      res.body = { status: 'error', statusCode: 400, message: 'Email or password missing' };
+      next();
+    }
+  });
 });
 
 
@@ -171,7 +183,6 @@ app.use('/remove_widget', function(req, res, next){
   res.body = { status: "ok" }
   next();
 });
-
 
 
 // This layer will respond to requests to /state.js and send a javascript file
@@ -325,7 +336,7 @@ app.use('/', function(req, res, next){
   }
   else if(_.isObject(res.body) && res.body.status === 'error'){
     res.writeHead(res.body.statusCode || 500, res.body.message || "Server Error");
-    res.end();
+    res.end(JSON.stringify(res.body));
   }
   else if(_.isObject(res.body) || _.isArray(res.body)){
     res.writeHead(200, "OK", { 'Content-Type': 'applicaiton/json' });
@@ -352,7 +363,6 @@ app.use('/', function(req, res, next){
 });
 
 
-
 // Render index.html
 app.use('/', function(req, res, next){
   // TODO: Pipe the file to the response
@@ -361,7 +371,6 @@ app.use('/', function(req, res, next){
     res.end(html);
   });
 });
-
 
 
 app.listen(3001);
