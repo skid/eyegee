@@ -1,142 +1,115 @@
-// The Color Palette
-@primary1: #b3e5fc;
-@primary3: #40c4ff;
-@primary5: #03a9f4;
-@primary7: #0288d1;
-
-@accent1:  #ffe0b2;
-@accent5:  #ff9800;
-@accent7:  #f57c00;
-
-@overlay: #f69988;
-@highlight: #fde0dc;
-
-// Text colors
-@text_darkest:  rgba(0, 0, 0, 0.87);
-@text_darker:   rgba(0, 0, 0, 0.54);
-@text_dark:     rgba(0, 0, 0, 0.26);
-@text_lightest: rgba(255, 255, 255, 1);
-@text_lighter:  rgba(255, 255, 255, 0.54);
-@text_light:    rgba(255, 255, 255, 0.26);
-
-
 .rss-item-feed {
-  min-height: 120px;
-  position: relative;
-  overflow: hidden;
-
-  .rss-item {
-    position: relative;
-    margin: 0;
-    padding: 3px 5px;
+  position:     relative;
+  min-height:   120px;
+  
+  .rss-item-preview {
+    position: absolute;
+    z-index: 2;
     
-    font-size: 1em;
-    line-height: 1.3;
+    top: 0;
+    left: -10px;
+    right: -10px;
+    height: auto;
+    padding: 5px;
     
-    a {
-      color: @primary7; 
-      text-decoration: none;
-
-      &:visited {
-        background: @accent1;
-        color: @primary3;
+    background: #D8F1FD;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    
+    .rss-preview-close {
+      color: #0288d1;
+      border-bottom: solid 1px #0288d1;
+      margin-bottom: 5px;
+      
+      button {
+        float: right;
+        vertical-align: middle;
+        font-size: 12px;
+        
+        svg {
+          fill: #0288d1;
+          height: 20px;
+          width: 20px;
+        }
       }
     }
     
-    &:hover {
-      background-color: @highlight;
+    .rss-preview-content {
+      background: #D8F1FD;
       
+      img {
+        max-width: 100%;
+        height: auto;
+      }
+      h1 { font-size: 120%; }
+      h2 { font-size: 115%; }
+      h3 { font-size: 110%; }
+      h4 { font-size: 105%; }
+      h5,h6 { font-size: 100%; }
+      p {
+        margin-bottom: 10px;
+      }
+    }
+  }
+    
+  .rss-item {
+    position:       relative;
+    min-height:     20px;
+    padding:        3px 5px;
+    border-radius:  3px;
+    font-size:      1em;
+    line-height:    1.3;
+
+    &:hover {
+      background-color: #b3e5fc;
+
       .rss-slide-tab {
-        right: 0;
+        opacity: 1;
       }
     }
     
     &:last-child {
       margin-bottom: 15px;
     }
-    
+
     .rss-slide-tab {
-      background-color: @primary1;
-      padding: 0 5px;
-      position: absolute;
-      height: 100%;
-      top: 0;
-      right: -74px;
+      box-sizing: border-box;
+      height:     100%;
+      padding:    0 5px;
+      position:   absolute;
+      top:        0;
+      right:      0;
+      opacity:    0;
+      background: #D8F1FD;
+      
+      a {
+        display: inline-block;
+        height: 100%;
+
+        svg {
+          position: relative;
+          top: 50%;
+          transform: translateY(-50%);
+          width:  20px;
+          height: 20px;
+          fill:   #0288d1;
+        }
+      }
     }
   }
 }
 
-
-.rss-loading-overlay {
-  position: absolute;
-  top: -5px;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: fadeout(@overlay, 50%);
+// Move the preview div in the first column a bit to the right
+section.wb-column:first-child {
+  .rss-item-preview {
+    left: -4px;
+    right: -16px;
+  }
 }
 
-.rss-edit-panel {
-  position: relative;
-  padding: 5px;
-  
-  .rss-edit-section {
-    margin-bottom: 10px;
-    
-    label {
-      font-size: 12px;
-      color: @accent7;
-      display: block;
-      margin: 0 0 4px 2px;
-    }
-    
-    input {
-      font-size: 13px;
-      color: @text_darkest;
-      padding: 4px;
-      width: 200px;
-    }
-    
-    .rss-widget-sources-box {
-      font-size: 12px;
-      margin-left: 5px;
-      
-      div {
-        margin-top: 5px;
-        * {
-          vertical-align: middle;
-        }
-      }
-    }
-    
-    label.inline {
-      color: @text_darker;
-      display: inline-block;
-      margin-right: 5px;
-      
-      input {
-        width: auto;
-        margin-right: 3px;
-      }
-    }
-    
-    button {
-      border: none;
-      background: none;
-      outline: none;
-      display: inline-block;
-      height: 16px;
-      width: 16px;
-      
-      svg {
-        fill: @accent7;
-        height: 16px;
-        width: 16px;
-      }
-    }
-    
-    * {
-      vertical-align: middle;
-    }
+// Move the preview div in the last column a bit to the left
+section.wb-column:last-child {
+  .rss-item-preview {
+    left: -16px;
+    right: -4px;
   }
 }

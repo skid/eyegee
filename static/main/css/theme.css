@@ -1,16 +1,27 @@
+@-webkit-keyframes spin {
+  100% {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
 body {
   font-family: Roboto;
 }
-input {
+input:not([type='checkbox']):not([type='radio']),
+textarea {
   color: rgba(0, 0, 0, 0.87);
   border: solid 1px #cfd8dc;
 }
-input::-webkit-input-placeholder,
-input :-moz-placeholder,
-input :-ms-input-placeholder {
+input:not([type='checkbox']):not([type='radio'])::-webkit-input-placeholder,
+textarea::-webkit-input-placeholder,
+input:not([type='checkbox']):not([type='radio']) :-moz-placeholder,
+textarea :-moz-placeholder,
+input:not([type='checkbox']):not([type='radio']) :-ms-input-placeholder,
+textarea :-ms-input-placeholder {
   color: #eceff1;
 }
-input:focus {
+input:not([type='checkbox']):not([type='radio']):focus,
+textarea:focus {
   border: solid 1px #ff9800;
   outline: none;
 }
@@ -41,25 +52,77 @@ section#login-section div.form-errors {
   color: #e84e40;
 }
 .widget-container {
-  border-color: #f69988;
+  border: none;
+  border-radius: 3px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
 }
-.widget-container .widget-header {
-  background-color: #e84e40;
-  color: rgba(255, 255, 255, 0.8);
+.widget-container .widget-loading-overlay {
+  background-color: rgba(2, 136, 209, 0.5);
 }
-.widget-container .widget-header a {
-  color: #ffe0b2;
+.widget-container .widget-loading-overlay svg {
+  fill: rgba(255, 255, 255, 0.5);
+  -webkit-animation-name: spin;
+  -webkit-animation-duration: 2s;
+  -webkit-animation-iteration-count: infinite;
+  -webkit-animation-timing-function: linear;
+}
+.widget-container a {
+  color: #0288d1;
   text-decoration: none;
 }
+.widget-container a:visited {
+  color: #40c4ff;
+}
+.widget-container button {
+  background-color: transparent;
+  border: none;
+  color: #b0120a;
+  margin: 0;
+  padding: 0;
+}
+.widget-container button:focus {
+  outline: none;
+}
+.widget-container button:focus svg {
+  fill: #f57c00;
+}
+.widget-container button svg {
+  width: 20px;
+  height: 20px;
+}
+.widget-container .widget-header {
+  color: #b0120a;
+  /* New Widget pickers have this class */
+}
+.widget-container .widget-header h3.new {
+  color: #03a9f4;
+  text-align: center;
+  float: none;
+}
+.widget-container .widget-header a {
+  text-decoration: none;
+  color: #b0120a;
+}
 .widget-container .widget-header a svg {
-  fill: #ffe0b2;
+  fill: #f57c00;
 }
-.widget-bottom-controls {
-  background-color: #f69988;
+.widget-container .widget-picker div {
+  color: #03a9f4;
+  fill: #03a9f4;
+  border: solid 1px #03a9f4;
+  border-radius: 3px;
 }
-.widget-bottom-controls button {
-  background-color: #e84e40;
-  color: rgba(255, 255, 255, 0.8);
+.widget-edit-panel .widget-edit-section label {
+  color: #f57c00;
+}
+.widget-edit-panel .widget-edit-section label.inline {
+  color: rgba(0, 0, 0, 0.54);
+}
+.widget-edit-panel .widget-edit-section input {
+  color: rgba(0, 0, 0, 0.87);
+}
+.widget-edit-panel .widget-edit-section button:focus svg {
+  fill: #f57c00;
 }
 .widgetbox-placeholder {
   background: #fdeae7;

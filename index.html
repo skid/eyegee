@@ -19,6 +19,8 @@
     <script src="/bower_components/angular-route/angular-route.js"></script>
     <script src="/bower_components/angular-widgetbox/angular-widgetbox.min.js"></script>
     <script src="/bower_components/angular-ui-utils/keypress.js"></script>
+    <script src="/bower_components/angular-sanitize/angular-sanitize.min.js"></script>
+
     <script src="/state.js"></script>
     <script src="/static/main/js/main.js"></script>
   </head>
@@ -65,20 +67,27 @@
 
       <section ng-repeat="column in columns" class="column wb-column col-{{ columns.length }}" widgetbox-column='wb-column' widgetbox-column-id="{{ $index }}">
         <div ng-repeat="widget in column" class="widget-container wb-widget" widgetbox-widget='wb-widget' widgetbox-draghandle=".widget-header" widgetbox-widget-id="{{ $index }}">
+          <div class="widget-loading-overlay" ng-show="widget.$working">
+            <svg viewBox="0 0 96 96"><use xlink:href="/static/main/icons.svg#settings"></use></svg>
+          </div>
+
           <div class="widget-header">
-            <h3 ng-show="!widget.link">{{ widget.title }}</h3>
+            <h3 ng-show="!widget.link" ng-class="{ new: !widget.module }">{{ widget.title }}</h3>
             <h3 ng-show="widget.link"><a href="{{ widget.link }}" target="_blank">{{ widget.title }}</a></h3>
-            <a href="javascript:;" ng-click="removeWidget(widget)" ng-show="widget.$scope.isEdited || !widget.module">
-              <svg viewBox="0 0 24 24"><use xlink:href="/static/main/img/core-icons.svg#clear"></use></svg>
+            <a href="javascript:;" ng-click="cancelEdit(widget)" ng-show="widget.$scope.isEdited">
+              <svg viewBox="0 0 96 96"><use xlink:href="/static/main/icons.svg#clear"></use></svg>
             </a>
-            <a href="javascript:;" ng-click="editWidget(widget)" ng-show="!widget.$scope.isEdited">
-              <svg viewBox="0 0 24 24"><use xlink:href="/static/main/img/core-icons.svg#settings"></use></svg>
+            <a href="javascript:;" ng-click="editWidget(widget)" ng-show="!widget.$scope.isEdited && widget.module">
+              <svg viewBox="0 0 96 96"><use xlink:href="/static/main/icons.svg#settings"></use></svg>
             </a>
           </div>
-          <widget-picker ng-show="!widget.module">
-            <h5>What kind?</h5>
-            <p ng-repeat="module in modules" ng-click="setModule(widget.id, module)">{{module}}</p>
-          </widget-picker>
+
+          <div class="widget-picker clearfix" ng-show="!widget.module">
+            <div ng-repeat="module in modules" ng-click="setModule(widget.id, module)">
+              <svg viewBox="0 0 96 96"><use xlink:href="{{module | svgSource}}"></use></svg>
+              {{module}}
+            </div>
+          </div>
 
           <widget-body ng-show="widget.module" module="{{ widget.module }}" widget-id="{{ widget.id }}"></widget-body>
         </div>

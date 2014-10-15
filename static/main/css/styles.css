@@ -120,9 +120,27 @@ main section.col-4 {
   padding: 10px 5px;
 }
 .widget-container {
+  position: relative;
   box-sizing: border-box;
   margin-bottom: 15px;
   border: solid 1px transparent;
+  padding: 3px;
+}
+.widget-container .widget-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+}
+.widget-container .widget-loading-overlay svg {
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  top: 50%;
+  left: 50%;
+  margin: -32px 0 0 -32px;
 }
 .widget-container .widget-header {
   *zoom: 1;
@@ -153,13 +171,57 @@ main section.col-4 {
 }
 .widget-container .widget-header > a {
   float: right;
-  margin-left: 5px;
   vertical-align: middle;
   font-size: 12px;
 }
 .widget-container .widget-header > a svg {
-  height: 16px;
-  width: 16px;
+  height: 20px;
+  width: 20px;
+}
+.widget-container .widget-edit-panel {
+  position: relative;
+  padding: 5px;
+}
+.widget-container .widget-edit-panel .widget-edit-section {
+  margin-bottom: 10px;
+}
+.widget-container .widget-edit-panel .widget-edit-section label {
+  display: block;
+  font-size: 0.9em;
+  margin: 0 0 4px 2px;
+}
+.widget-container .widget-edit-panel .widget-edit-section label.inline {
+  display: inline-block;
+  margin-right: 5px;
+}
+.widget-container .widget-edit-panel .widget-edit-section label.inline input {
+  width: auto;
+  margin-right: 3px;
+}
+.widget-container .widget-edit-panel .widget-edit-section input {
+  box-sizing: border-box;
+  width: calc(100% - 50px);
+}
+.widget-container .widget-edit-panel .widget-edit-section .widget-edit-group {
+  font-size: 0.9em;
+  margin-left: 5px;
+}
+.widget-container .widget-edit-panel .widget-edit-section button {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+.widget-container .widget-edit-panel .widget-edit-section button:focus {
+  border: none;
+  outline: none;
+}
+.widget-container .widget-edit-panel .widget-edit-section svg {
+  height: 18px;
+  width: 18px;
+}
+.widget-container .widget-edit-panel .widget-edit-section * {
+  vertical-align: middle;
 }
 .widget-container .widget-bottom-controls {
   *zoom: 1;
@@ -186,6 +248,25 @@ main section.col-4 {
 .widget-container .widget-bottom-controls button {
   border: none;
   margin: 5px 0 5px 5px;
+}
+.widget-container .widget-picker {
+  padding: 5px;
+  margin-bottom: 5px;
+}
+.widget-container .widget-picker div {
+  float: left;
+  font-size: 1.2em;
+  text-transform: capitalize;
+  cursor: pointer;
+  margin-right: 10px;
+  padding: 5px;
+  text-align: center;
+}
+.widget-container .widget-picker div svg {
+  width: 40px;
+  height: 40px;
+  display: block;
+  margin: 0 auto;
 }
 .widgetbox-placeholder {
   height: 100px;

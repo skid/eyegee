@@ -271,8 +271,10 @@ app.use('/proxy', function(req, res, next){
         res.writeHead(200, "OK", JSON.parse(result[0]));
         result = new Buffer(result[1], 'base64');
       }
-
-      return res.end(result);
+      
+      setTimeout(function(){
+        return res.end(result);
+      }, 2000);
 
     }
     

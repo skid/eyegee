@@ -1,34 +1,36 @@
-<div ng-controller="RssController">  
+<div ng-controller="RssController">
+  
   <!-- Shown when the widget has the "isEdited" flag set to true -->
-  <div class="rss-edit-panel" ng-show="isEdited">
-    <div class="rss-loading-overlay" ng-show="isWorking"></div>
-
-    <div class="rss-edit-section">
-      <label class="rss-widget-label">Widget Title</label>
+  <div class="widget-edit-panel" ng-show="isEdited">
+    
+    <div class="widget-edit-section">
+      <label>Widget Title</label>
       <input ng-model="title" class="rss-widget-title" type="text" >
     </div>
     
-    <div class="rss-edit-section">
-      <label ng-show="sources.length" class="rss-widget-label">Sources</label>
-      <div ng-show="sources.length" class="rss-widget-sources-box">
+    <div class="widget-edit-section">
+      <label ng-show="sources.length">Sources</label>
+      <div ng-show="sources.length" class="widget-edit-group">
+
         <div ng-repeat="source in sources" ng-class="sourceInfo[source] || ''">
           <span>{{source}}</span>
           <button ng-click="removeSource($index)">
-            <svg viewBox="0 0 24 24"><use xlink:href="/static/main/img/core-icons.svg#clear"></use></svg>
+            <svg viewBox="0 0 96 96"><use xlink:href="/static/main/icons.svg#delete"></use></svg>
           </button>
         </div>
+
       </div>
     </div>
     
-    <div class="rss-edit-section">
-      <label class="rss-widget-label">Add New Source</label>
+    <div class="widget-edit-section">
+      <label>Add New Source</label>
       <input ng-model="newSource" ui-keypress="{13:'addSource()'}" placeholder="URL to a new feed or website">
       <button ng-click="addSource()">
-        <svg viewBox="0 0 24 24"><use xlink:href="/static/main/img/core-icons.svg#save"></use></svg>
+        <svg viewBox="0 0 96 96"><use xlink:href="/static/main/icons.svg#save"></use></svg>
       </button>
     </div>
 
-    <div class="rss-edit-section">
+    <div class="widget-edit-section">
       <label>Items Displayed</label>
       <label class="inline"><input type="radio" ng-model="itemCount" value="5" checked>5</label>
       <label class="inline"><input type="radio" ng-model="itemCount" value="10">10</label>
@@ -36,23 +38,46 @@
       <label class="inline"><input type="radio" ng-model="itemCount" value="20">20</label>
       <label class="inline"><input type="radio" ng-model="itemCount" value="all">All</label>
     </div>
-    
+
     <div class="widget-bottom-controls">
-      <button ng-click="saveSettings()">Ok</button>
       <!-- Show the cancel button only for existing widgets -->
-      <button ng-click="saveSettings()" ng-show="!widget.isNew">Cancel</button>
+      <button ng-click="widget.remove()" ng-show="!widget.isNew">
+        <svg viewBox="0 0 96 96"><use xlink:href="/static/main/icons.svg#delete"></use></svg>
+      </button>
+      <button ng-click="saveSettings()">
+        <svg viewBox="0 0 96 96"><use xlink:href="/static/main/icons.svg#check"></use></svg>
+      </button>
     </div>
+
   </div>
 
   <!-- Shown when the widget has the "isEdited" flag set to false -->
   <div ng-show="!isEdited" class="rss-item-feed">
+
+    <div rss-item-preview ng-show="preview" class="rss-item-preview" item="{{preview}}">
+      <div class="rss-preview-close clearfix">
+        Preview
+        <button ng-click="hidePreview()">
+          <svg viewBox="0 0 96 96"><use xlink:href="/static/main/icons.svg#clear"></use></svg>
+        </button>
+      </div>
+      <div class="rss-preview-content" ng-bind-html="preview.description"></div>
+    </div>
+    
     <div ng-repeat="item in items|loopRss:itemCount" ng-show="items.length" class="rss-item">
       <p><a href="{{item.link}}" target="_blank">{{ item.title }}</a></p>
+
       <div class="rss-slide-tab" ng-show="item.comments">
-        <a href="{{item.comments}}" target="_blank" ng-show="item.comments">Comments</a>
+        <a href="javascript:;" ng-click="showPreview(item, $event)" ng-show="item.description" title="Description">
+          <svg viewBox="0 0 96 96"><use xlink:href="/static/main/icons.svg#view"></use></svg>
+        </a>
+        <a href="{{item.comments}}" target="_blank" ng-show="item.comments" title="Comments">
+          <svg viewBox="0 0 96 96"><use xlink:href="/static/main/icons.svg#comments"></use></svg>
+        </a>
       </div>
     </div>
-    <div ng-show="!items.length && !loading">No RSS items</div>
-    <div ng-show="loading" class="rss-loading-overlay"></div>
+    
+    <div ng-show="!items.length && !widget.$working" class="rss-item">No RSS items</div>
+
   </div>
 </div>

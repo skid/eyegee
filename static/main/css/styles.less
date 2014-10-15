@@ -136,10 +136,29 @@ main {
 }
 
 .widget-container {
+  position:      relative;
   box-sizing:    border-box;
   margin-bottom: 15px;
   border:        solid 1px transparent;
-
+  padding:       3px;
+  
+  .widget-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+    svg {
+      position: absolute;
+      width: 64px;
+      height: 64px;
+      top: 50%;
+      left: 50%;
+      margin: -32px 0 0 -32px;
+    }
+  }
+  
   .widget-header {
     .clearfix();
     
@@ -155,17 +174,73 @@ main {
 
     > a {
       float: right;
-      margin-left: 5px;
       vertical-align: middle;
       font-size: 12px;
       
       svg {
-        height: 16px;
-        width: 16px;
+        height: 20px;
+        width: 20px;
       }
     }
   }
+  
+  .widget-edit-panel {
+    position: relative;
+    padding:  5px;
+  
+    .widget-edit-section {
+      margin-bottom: 10px;
 
+      label {
+        display:   block;
+        font-size: 0.9em;
+        margin:    0 0 4px 2px;
+      
+        &.inline {
+          display:      inline-block;
+          margin-right: 5px;
+      
+          input {
+            width: auto;
+            margin-right: 3px;
+          }
+        }
+      }
+
+      input {
+        box-sizing: border-box;
+        width: ~"calc(100% - 50px)";
+      }
+
+      .widget-edit-group {
+        font-size: 0.9em;
+        margin-left: 5px;
+      }
+      
+      // Buttons inside the edit panel use svg icons
+      button {
+        background: none;
+        border:     none;
+        padding:    0;
+        margin:     0;
+      
+        &:focus {
+          border:   none;
+          outline:  none;
+        }
+      }
+    
+      svg {
+        height: 18px;
+        width:  18px;
+      }
+
+      * {
+        vertical-align: middle;
+      }
+    }
+  }
+  
   .widget-bottom-controls {
     .clearfix();
 
@@ -176,6 +251,28 @@ main {
     button {
       border:  none;
       margin:  5px 0 5px 5px;
+    }
+  }
+  
+  .widget-picker {
+    padding: 5px;
+    margin-bottom: 5px;
+
+    div {
+      float: left;
+      font-size: 1.2em;
+      text-transform: capitalize;
+      cursor: pointer;
+      margin-right: 10px;
+      padding: 5px;
+      text-align: center;
+      
+      svg {
+        width: 40px;
+        height: 40px;
+        display: block;
+        margin: 0 auto;
+      }
     }
   }
 }

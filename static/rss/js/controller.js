@@ -177,23 +177,25 @@
 
   
   function parseXML(xml) {
-    var doc = null;
+    var doc    = null;
     var reHTML = new RegExp("<\\!doctype", "i");
-
+    
+    try {
+      if (window.ActiveXObject) {
+        doc = new ActiveXObject("Microsoft.XMLDOM");
+        doc.loadXML(xml);
+      }
+      else {
+        doc = (new DOMParser).parseFromString(xml, "text/xml");
+      }
+    } catch(e){
+      doc = null; // Can't parse - invalid XML
+    }
+    return doc;
+    
     // XML document, use the native parser
     if(!reHTML.test(xml)){
-      try {
-        if (window.ActiveXObject) {
-          doc = new ActiveXObject("Microsoft.XMLDOM");
-          doc.loadXML(xml);
-        }
-        else {
-          doc = (new DOMParser).parseFromString(xml, "text/xml");
-        }
-      } catch(e){
-        doc = null; // Can't parse - invalid XML
-      }
-      return doc;
+      
     }
     // A HTML document, use the iframe parser
     else {
@@ -204,26 +206,7 @@
     }
   }
 
-  // Looks for <link> elements with a "application/rss+xml" or "application/atom+xml" Content-Type.
-  // Returns an array of found links' href attributes or null if the parsing fails or there are no such links.
-  // IMPORTANT: All "src" and "href" attributes of external documents are prefixed with "data-"
-  function findRSSLinks(html){
-    var doc = parseXML(html);
-    var links = doc ? $("link[type='application/rss+xml'],link[type='application/atom+xml']", doc) : [];
-    return (doc && links.length > 0) ? links.map(function(){ return $(this).attr('data-href') }).toArray().filter(function(e){ return e; }) : null;
-  }
-
-
-  // Parses an XML string into an RSS or an Atom feed.
-  // Returns null if it fails.
-  function parseFeed(xml){
-    var doc = parseXML(xml);
-    return doc && ($('channel', doc).length == 1 ? parseRSS(doc) : ($('feed', doc).length == 1 ? parseAtom(doc) : null));
-  }
-
-
   // RSS parser
-  // IMPORTANT: All "src" and "href" attributes of external documents are prefixed with "data-"
   function parseRSS(xml) {
     var channel, feed = {};
     channel = $('channel', xml).eq(0);
@@ -251,14 +234,13 @@
 
 
   // Atom parser
-  // IMPORTANT: All "src" and "href" attributes of external documents are prefixed with "data-"
   function parseAtom(xml){
     var channel, feed = {};
   
     channel = $('feed', xml).eq(0);
     feed.version = '1.0';
     feed.title = channel.find('title:first').text();
-    feed.link = channel.find('link:first').attr('data-href');
+    feed.link = channel.find('link:first').attr('href');
     feed.description = channel.find('subtitle:first').text();
     feed.language = channel.attr('xml:lang');
     feed.updated = channel.find('updated:first').text();
@@ -278,40 +260,116 @@
 
     return feed;
   }
+
+
+  /** 
+   * Looks for <link> elements with a "application/rss+xml" or "application/atom+xml" content type.
+   * Returns an array of found links' href attributes or null if the parsing fails or no links are found.
+  **/
+  function findRSSLinks(html){
+    var doc    = parseXML(html);
+    var links  = doc ? doc.querySelectorAll("link[type='application/rss+xml'], link[type='application/atom+xml']") : [];
+    var result = [];
+
+    var href;
+    for(var i=0; i<links.length; ++i){
+      if(href = links[i].getAttribute('href')){
+        result.push(href);
+      }
+    }
+    return result.length ? result : null;
+  }
+
+  /**
+   * Parses an XML string into an RSS or an Atom feed.
+   * Returns null if it fails.
+  **/
+  function parseFeed(xml){
+    var doc = parseXML(xml);
+
+    if(doc && doc.querySelectorAll('channel').length){
+      return parseRSS(doc);
+    }
+    else if(doc && doc.querySelectorAll('feed').length){
+      return parseAtom(doc);
+    }
+
+    return null;
+  }
   
+  
+  /**
+   * A directive for the rss item preview pane.
+  **/
+  angular.module('eyegeeApp').lazy.directive('rssItemPreview', function ($compile) {
+    return { 
+      restrict: "A", 
+      replace:  false, 
+      link: function($scope, element, attrs) {
+        attrs.$observe('item', function(val){
+          if(val){
+            element[0].style.top = ($scope.previewTarget.offsetTop - 20) + "px";
+          }
+        });
+      }
+    };
+  });
+  
+  // Need to account for the "all" option instead of just numbers
+  angular.module('eyegeeApp').lazy.filter('loopRss', function() {
+    // This filter is similar to the limitTo filter, except that
+    // passing the string "all" as the limit parameter will loop over all array elements.
+    return function(input, itemCount) {
+      return itemCount === 'all' ? input : input.slice(0, itemCount);
+    };
+  });
+
   /**
    * Angular controller for RSS widgets.
    * Has a separate instance for each widget on the page.
   **/
-  angular.module('eyegeeApp').lazy.controller('RssController', function ($scope, $http, $timeout, model) {
+  angular.module('eyegeeApp').lazy.controller('RssController', function ($scope, $http, $timeout, model, appconfig) {
     // Note for myself:
     // The following code runs only once per widget
     var widget = model.getWidgetById( $scope.widgetId );
 
-    $scope.widget = widget;
-    widget.$scope = $scope; // Expose the scope
-      
-    // These are used outside the edit mode
-    $scope.itemCount  = widget.itemCount || 10;
-    $scope.items      = [];
-    $scope.title      = widget.title || "";
-    
-    widget.editBegin = function(){
+    /**
+     * Define the editBegin, editEnd and remove methods.
+     * Each widget should have these defined.
+    **/
+    widget.editBegin = function editBegin(){
       $scope.sources    = widget.sources ? widget.sources.slice() : [];
       $scope.sourceInfo = {};
       $scope.sources.forEach(function(source){
         $scope.sourceInfo[source] = 'valid';
       });
-
       $scope.newSource  = "";
       $scope.errors     = [];
       $scope.itemCount  = widget.itemCount || 10;
-      $scope.items      = [];
-      
-      $scope.loading   = false;
-      $scope.isEdited  = true;
-      $scope.isWorking = 0;
+      $scope.isEdited   = true;
     }
+
+    widget.editEnd = function editEnd(){
+      $scope.isEdited = false;
+    }
+
+    widget.remove = function remove(){
+      if(confirm("Remove this widget?")){
+        model.removeWidget(this);
+        model.saveState();
+      }
+    }
+    
+    // We need this to expose the scope 
+    // to the widget and vice versa
+    $scope.widget = widget;
+    widget.$scope = $scope;
+    widget.$working = 0;
+    
+    // These are used outside the edit mode
+    $scope.itemCount  = widget.itemCount || 10;
+    $scope.items      = [];
+    $scope.title      = widget.title || "";
 
     // Upon initilization, we immediately show the edit screen if the widget is new
     // The __editToken is set to true when the user selects the widget's module
@@ -324,14 +382,13 @@
       loadFeeds();
     }
 
-    // Note for myself:
-    // The above code runs only once per widget
-
     /**
      * Runs when the addSource button is clicked
     **/
     $scope.addSource = function(){
-      if(!$scope.newSource){ return; }
+      if(!$scope.newSource){ 
+        return; 
+      }
 
       // Remember this locally
       var source = $scope.newSource;
@@ -385,22 +442,46 @@
         loadFeeds();
       }
     }
+    
+    /**
+     * Shows the RSS item's description
+    **/
+    $scope.showPreview = function(item, $event){
+      var node = $event.target;
+      while(("" + node.className).indexOf('rss-item') === -1){
+        // Look for the rss item div, which is the parent of the slide-pane div
+        node = node.parentNode;
+      }
+      $scope.preview = item;
+      $scope.previewTarget = node;
+    }
+    $scope.hidePreview = function(item){
+      $scope.preview = null;
+      $scope.previewTarget = null;
+    }
 
     /**
-     * Loads the RSS feeds from the sources
+     * Loads and parses the actual feeds
     **/
     function loadFeeds(){
-      var i = 0, feeds = [], counter = widget.sources.length;
+      if(!widget.sources) {
+        return widget.editBegin();
+      }
+
+      var i = 0; 
+      var feeds = []; 
+      var counter = widget.sources.length;
+      
+      widget.$working = counter ? 1 : 0;
 
       function done(){
-        $scope.loading = false;
+        widget.$working = 0;
+
         if(feeds.length === 1) {
-          $scope.title !== "New Widget" || !$scope.title || (widget.title = feeds[0].title || "No title");
           $scope.items = feeds[0].items;
           $scope.widget.link = feeds[0].link;
         }
         else if (feeds.length > 1){
-          $scope.title || (widget.title = "Multiple Feeds");
           $scope.items = [];
           feeds.forEach(function(feed){
             $scope.items = $scope.items.concat(feed.items);
@@ -412,12 +493,7 @@
       }
 
       widget.sources.forEach(function(source){
-        $scope.loading = true;
-        $http({ 
-          url:  '/proxy', 
-          method: 'POST', 
-          data: { source: source } 
-        })
+        $http({ url: '/proxy', method: 'POST', data: {source: source} })
         .success(function(data, status, headers, config){
           var parsed = parseFeed(data);
           parsed ? feeds.push(parsed) : $scope.errors.push("Can't parse feed " + source);
@@ -429,43 +505,21 @@
         });
       });
     }
-    
-    /**
-     * Loads a URL and, parses the result and then runs the callback
-     * passing it an argument which can be one of the folowing 3:
-     *  1. Boolean true - the URL points to a valid RSS resource
-     *  2. Boolean false - there is an error loading the URL
-     *  3. Array of strings - The URL points to a html that links to RSS pages.
-    **/
-    function checkSource(source, callback){
-      $http({ 
-        url:  '/proxy', 
-        method: 'POST', 
-        data: { source: source } 
-      })
-      .success(function(data, status, headers, config){
-        var feed, links;
-        parseFeed(data) ? callback(true) : (links = findRSSLinks(data)) ? callback(links) : callback(false);        
-      })
-      .error(function(data, status, headers, config){ 
-        callback(false); 
-      });
-    }
 
-    // Add source
+    /**
+     * Adds a new source URL to the widget's list of sources
+    **/
     function addSource(source, atIndex){
-      var i, oldIndex, index;
-      
       // We don't allow duplicates
       if($scope.sources.indexOf(source) > -1){
         return;
       }
 
       // Set the working flag
-      $scope.isWorking += 1;
-      
+      widget.$working += 1;
+
       // Remember the index
-      index = isNaN(atIndex) ? $scope.sources.length : atIndex;
+      var index = isNaN(atIndex) ? $scope.sources.length : atIndex;
 
       // Add source to the sources list
       $scope.sources.splice(index, 0, source);
@@ -473,36 +527,41 @@
       // Mark the source as being checked
       $scope.sourceInfo[source] = "checking";
 
-      // Check the source
-      checkSource(source, function(result){
-        // Page is an RSS feed
-        if(result === true){
-          $scope.sourceInfo[ source ] = "valid";
-        }
-        // Can't fetch page, mark the source as invalid and remove it after one second
-        else if(result === false){
-          $scope.sourceInfo[ source ] = "invalid";
-          // TODO: Make the timeout configurable and add a transition effect
-          $timeout(function(){
-            $scope.sources.splice(index, 1);
-            delete $scope.sourceInfo[source];
-          }, 1000);
+      $http({ url: '/proxy', method: 'POST', data: {source: source} })
+      .success(function(data, status, headers, config){
+        var links, feed;
+        
+        // Page is an RSS feed, mark the source as valid
+        if(feed = parseFeed(data)){
+          $scope.sourceInfo[source] = "valid";
+          if($scope.title === appconfig.newWidgetTitle){
+            $scope.title = feed.title;
+          }
         }
         // Page contains rss feeds, replace the current source with all of them and check them
-        else {
-          i, oldIndex = $scope.sources.indexOf(source);
-          
+        else if(links = findRSSLinks(data)){
+          var oldIndex = $scope.sources.indexOf(source);
+
           $scope.sources.splice(oldIndex, 1);
           delete $scope.sourceInfo[source];
 
-          for(i = 0; i < result.length; ++i){
-            addSource(result[i], oldIndex + i);
+          for(var i = 0; i < links.length; ++i){
+            addSource(links[i], oldIndex + i);
           };
         }
-
-        $scope.isWorking -= 1;
+        // Can't fetch page, mark the source as invalid and remove it
+        else {
+          $scope.sources.splice(index, 1);
+          delete $scope.sourceInfo[source];
+        }
+        widget.$working -= 1;          
+      })
+      .error(function(data, status, headers, config){
+        $scope.sources.splice(index, 1);
+        delete $scope.sourceInfo[source];
+        widget.$working -= 1;
       });
     }
-  });
 
+  });
 })();

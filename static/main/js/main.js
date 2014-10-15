@@ -1,20 +1,8 @@
 (function(){
   /**
-   * Helper used in the main module
+   * This is the main model that contains the widgets
+   * It handles state loading and saving and widget arrangements.
   **/
-  function debounce(fn, delay) {
-    var timer = null;
-    return function () {
-      var context = this, args = arguments;
-      clearTimeout(timer);
-      timer = setTimeout(function () {
-        fn.apply(context, args);
-      }, delay);
-    };
-  }
-  
-  var app = angular.module('eyegeeApp', ['ngRoute', 'widgetbox', 'ui.keypress']);
-
   var model = {
     _guid: 0,
     _columnCount: 0,
@@ -65,14 +53,7 @@
 
     **/
     setWindowSize: function(ww){
-      var colCount = 
-        ww <= 480 
-          ? 1 
-          : ww <= 960 
-            ? 2 
-            : ww <= 1440 
-              ? 3 
-              : 4;
+      var colCount = ww <= 480 ? 1 : (ww <= 960 ? 2 : (ww <= 1440 ? 3 : 4));
 
       if( this._columnCount === colCount ){
         return; // Don't do unnecessary work
@@ -80,7 +61,7 @@
       this._columnCount = colCount;
       this.setColumns(this.columns);
     },
-
+    
     setColumns: function(widgets){
       var col, pos, min, preference, widget, flat = [];
 
@@ -144,7 +125,11 @@
 
     addWidget: function(){
       // TODO: Determine next widget position
-      this.columns[0].push({ module: null, id: "new-" + this.guid(), title: "New Widget" });
+      this.columns[0].push({ 
+        module: null, 
+        id: "new-" + this.guid(), 
+        title: this.appconfig.newWidgetTitle 
+      });
     },
 
     removeWidget: function(widget){
@@ -175,12 +160,7 @@
         });
       });
 
-      this.$http({
-        url:     "/widget",
-        method:  "POST",
-        data:    JSON.stringify(columns),
-        headers: {'Content-Type': 'application/json'}
-      })
+      this.$http({ url: "/widget", method: "POST", data: JSON.stringify(columns), headers: {'Content-Type': 'application/json'} })
       .success(function(data, status, headers, config){
         // TODO: Handle success
       })
@@ -189,13 +169,24 @@
       });
     }
   }
-
-  // Need to account for the "all" option instead of just numbers
-  app.filter('loopRss', function() {
-    // This filter is similar to the limitTo filter, except that
-    // passing the string "all" as the limit parameter will loop over all array elements.
-    return function(input, itemCount) {
-      return itemCount === 'all' ? input : input.slice(0, itemCount);
+  
+  /**
+   * The one and only module that handles the basic stuff.
+  **/
+  var app = angular.module('eyegeeApp', ['ngRoute', 'widgetbox', 'ui.keypress', 'ngSanitize']);
+  
+  // The model is used by other controllers too  
+  app.constant('model', model);
+  
+  // Global configuration goes here
+  app.constant('appconfig', {
+   newWidgetTitle: "New Widget"
+  })
+  
+  // Needed for safe binding of dynamic svg icon urls
+  app.filter('svgSource', function ($sce) {
+    return function(icon) {
+      return $sce.trustAsResourceUrl('/static/main/icons.svg#' + icon);
     };
   });
 
@@ -209,15 +200,8 @@
       service: $provide.service
     }
   });
-
-  /**
-   * We need access to the model in different controllers spread across different files.
-   * which are loaded dynamically. That's why we make a factory that will return the model.
-   * The MainController $scope and $http service are attached to the model 
-   * when the MainController function is executed.
-  **/
-  app.factory('model', function($http){ return model; });
-
+  
+  
   /**
    * The widgetItem directive will render the widgets.
    * It will have different behaviour based on the widget that calls it
@@ -227,9 +211,7 @@
    * Check: http://onehungrymind.com/angularjs-dynamic-templates/
   **/
   app.directive('widgetBody', function ($compile, $http, $templateCache) {
-
     function widgetBodyLinker(scope, element, attrs) {
-      
       /**
        * This is a very important observer.
        * The widget's module changes ONLY ONCE, in one of the following situations:
@@ -266,15 +248,14 @@
     return { restrict: "E", replace: true, link: widgetBodyLinker, scope: {} };
   });
 
-
-
   /**
    * The MainController provides a scope for the model and the callback
    * for the angular-widgetbox plugin.
   **/
-  app.controller('MainController', function($scope, $timeout, $window, $http, model){
+  app.controller('MainController', function($scope, $timeout, $window, $http, model, appconfig){
     model.$scope = $scope;
-    model.$http = $http;
+    model.$http  = $http;
+    model.appconfig = appconfig;
     
     // The number of columns depends on the window width.
     // We need to initialize a listener and the number of columns.
@@ -303,7 +284,11 @@
       // Save the new state.
       model.saveState();
     }
-
+    
+    /**
+     * Sets the module of a new widget
+     * Once the module changes, the widgetBodyLinker function will load the controller
+    **/
     $scope.setModule = function(widgetId, module){
       var widget = model.getWidgetById(widgetId);
       
@@ -312,22 +297,41 @@
       widget.module = module;
     }
 
+    /**
+     * Removes a widget
+    **/
     $scope.removeWidget = function(widget){
-      if(confirm("Remove this widget?")){
-        model.removeWidget(widget);
-        model.saveState();
-      }
+      widget.remove();
     }
     
+    /**
+     * Starts widget editing.
+    **/
     $scope.editWidget = function(widget){
       widget.module && widget.editBegin();
     }
+
+    /**
+     * Cancels editing
+    **/
+    $scope.cancelEdit = function(widget){
+      widget.editEnd();
+    }
   });
-  
+
+
   /**
-   * Takes care of the navigation buttons, and user registration.
+   * The NavigationController takes care of the top navigation buttons
+   * and user session management and/or registration.
+   * I know, the choice for a name is poor.
   **/
   app.controller('NavigationController', function($scope, $http, model){
+    
+    // Method invoked by the "new widget" button
+    $scope.newWidget = function(){ 
+      model.addWidget();
+      // TODO: Scroll to widget
+    }
     
     $scope.session = {
       // State variables
@@ -416,13 +420,19 @@
         $scope.session.error = data.message;
       });
     }
-
-    /**
-     * Adds new widget to the first column, then scrolls to it.
-    **/
-    $scope.newWidget = function(){ 
-      model.addWidget();
-      // TODO: Scroll to widget
-    }    
-  });    
+  });
+  
+  
+  
+  // Helper function used in the main controller
+  function debounce(fn, delay) {
+    var timer = null;
+    return function () {
+      var context = this, args = arguments;
+      clearTimeout(timer);
+      timer = setTimeout(function () {
+        fn.apply(context, args);
+      }, delay);
+    };
+  }      
 })();

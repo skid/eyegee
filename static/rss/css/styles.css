@@ -1,99 +1,103 @@
 .rss-item-feed {
-  min-height: 120px;
   position: relative;
-  overflow: hidden;
+  min-height: 120px;
+}
+.rss-item-feed .rss-item-preview {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: -10px;
+  right: -10px;
+  height: auto;
+  padding: 5px;
+  background: #D8F1FD;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+}
+.rss-item-feed .rss-item-preview .rss-preview-close {
+  color: #0288d1;
+  border-bottom: solid 1px #0288d1;
+  margin-bottom: 5px;
+}
+.rss-item-feed .rss-item-preview .rss-preview-close button {
+  float: right;
+  vertical-align: middle;
+  font-size: 12px;
+}
+.rss-item-feed .rss-item-preview .rss-preview-close button svg {
+  fill: #0288d1;
+  height: 20px;
+  width: 20px;
+}
+.rss-item-feed .rss-item-preview .rss-preview-content {
+  background: #D8F1FD;
+}
+.rss-item-feed .rss-item-preview .rss-preview-content img {
+  max-width: 100%;
+  height: auto;
+}
+.rss-item-feed .rss-item-preview .rss-preview-content h1 {
+  font-size: 120%;
+}
+.rss-item-feed .rss-item-preview .rss-preview-content h2 {
+  font-size: 115%;
+}
+.rss-item-feed .rss-item-preview .rss-preview-content h3 {
+  font-size: 110%;
+}
+.rss-item-feed .rss-item-preview .rss-preview-content h4 {
+  font-size: 105%;
+}
+.rss-item-feed .rss-item-preview .rss-preview-content h5,
+.rss-item-feed .rss-item-preview .rss-preview-content h6 {
+  font-size: 100%;
+}
+.rss-item-feed .rss-item-preview .rss-preview-content p {
+  margin-bottom: 10px;
 }
 .rss-item-feed .rss-item {
   position: relative;
-  margin: 0;
+  min-height: 20px;
   padding: 3px 5px;
+  border-radius: 3px;
   font-size: 1em;
   line-height: 1.3;
 }
-.rss-item-feed .rss-item a {
-  color: #0288d1;
-  text-decoration: none;
-}
-.rss-item-feed .rss-item a:visited {
-  background: #ffe0b2;
-  color: #40c4ff;
-}
 .rss-item-feed .rss-item:hover {
-  background-color: #fde0dc;
+  background-color: #b3e5fc;
 }
 .rss-item-feed .rss-item:hover .rss-slide-tab {
-  right: 0;
+  opacity: 1;
 }
 .rss-item-feed .rss-item:last-child {
   margin-bottom: 15px;
 }
 .rss-item-feed .rss-item .rss-slide-tab {
-  background-color: #b3e5fc;
+  box-sizing: border-box;
+  height: 100%;
   padding: 0 5px;
   position: absolute;
-  height: 100%;
   top: 0;
-  right: -74px;
-}
-.rss-loading-overlay {
-  position: absolute;
-  top: -5px;
-  left: 0;
   right: 0;
-  bottom: 0;
-  background-color: rgba(246, 153, 136, 0.5);
+  opacity: 0;
+  background: #D8F1FD;
 }
-.rss-edit-panel {
+.rss-item-feed .rss-item .rss-slide-tab a {
+  display: inline-block;
+  height: 100%;
+}
+.rss-item-feed .rss-item .rss-slide-tab a svg {
   position: relative;
-  padding: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  fill: #0288d1;
 }
-.rss-edit-panel .rss-edit-section {
-  margin-bottom: 10px;
+section.wb-column:first-child .rss-item-preview {
+  left: -4px;
+  right: -16px;
 }
-.rss-edit-panel .rss-edit-section label {
-  font-size: 12px;
-  color: #f57c00;
-  display: block;
-  margin: 0 0 4px 2px;
-}
-.rss-edit-panel .rss-edit-section input {
-  font-size: 13px;
-  color: rgba(0, 0, 0, 0.87);
-  padding: 4px;
-  width: 200px;
-}
-.rss-edit-panel .rss-edit-section .rss-widget-sources-box {
-  font-size: 12px;
-  margin-left: 5px;
-}
-.rss-edit-panel .rss-edit-section .rss-widget-sources-box div {
-  margin-top: 5px;
-}
-.rss-edit-panel .rss-edit-section .rss-widget-sources-box div * {
-  vertical-align: middle;
-}
-.rss-edit-panel .rss-edit-section label.inline {
-  color: rgba(0, 0, 0, 0.54);
-  display: inline-block;
-  margin-right: 5px;
-}
-.rss-edit-panel .rss-edit-section label.inline input {
-  width: auto;
-  margin-right: 3px;
-}
-.rss-edit-panel .rss-edit-section button {
-  border: none;
-  background: none;
-  outline: none;
-  display: inline-block;
-  height: 16px;
-  width: 16px;
-}
-.rss-edit-panel .rss-edit-section button svg {
-  fill: #f57c00;
-  height: 16px;
-  width: 16px;
-}
-.rss-edit-panel .rss-edit-section * {
-  vertical-align: middle;
+section.wb-column:last-child .rss-item-preview {
+  left: -16px;
+  right: -4px;
 }
