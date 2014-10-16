@@ -5,6 +5,7 @@
   **/
   var xkcd_re = /\<div\s+id=\"comic\"\>\s+\<img\s+src=\"([^"]+)\"/;
   var dilbert_re = /\<img\s+src="([^"]+)"\s+title="The\s+Dilbert\s+Strip\s+for\s+[^"]+"\s+\/\>/;
+  var cyanide_re = /\<img\s+alt\=\"Cyanide\s+and\s+Happiness\,\s+a\s+daily\s+webcomic\"\s+src=\"([^"]+)\"\s+border\=0\>/;
   var parserFunctions = [
     function xkcd(html){
       var match = html.match(xkcd_re);
@@ -15,7 +16,12 @@
       return match && "http://www.dilbert.com/" + match[1];
     },
     function cyanide(html){
-    
+      var match = html.match(cyanide_re);
+      var url = match && match[1];
+      if(url[0] === "/") {
+        url = "http://explosm.net" + url;
+      }
+      return url;
     }
   ];
 
@@ -69,7 +75,7 @@
     else {
       loadSrc();
     }
-    
+
     // Applies the changes from the edit panel
     $scope.saveSettings = function(){
       $scope.isEdited = false;

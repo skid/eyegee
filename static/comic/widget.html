@@ -21,7 +21,9 @@
   </div>
 
   <div ng-show="!isEdited" class="comic-strip-container">
-    <image ng-show="!error" ng-if="src" ng-src="{{ src|url }}">
+    <a href="{{ widget.link|url }}" target="_blank">
+      <img ng-show="!error" ng-if="src" ng-src="{{ src|url }}">
+    </a>
     <div class='comic-error-message' ng-show="error">
       {{error}}
     </div>

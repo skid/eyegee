@@ -1,4 +1,20 @@
 (function(){
+  function parseXML(xml) {
+    var doc = null;
+    try {
+      if (window.ActiveXObject) {
+        doc = new ActiveXObject("Microsoft.XMLDOM");
+        doc.loadXML(xml);
+      }
+      else {
+        doc = (new DOMParser).parseFromString(xml, "text/xml");
+      }
+    } catch(e){
+      doc = null;
+    }
+    return doc;
+  }
+  
   // RSS parser
   function parseRSS(xml) {
     var channel, feed = {};

@@ -426,10 +426,9 @@
   
 
 
-  // Global Helper functions
-  // These have nothing to do with Angular, but I need them in various widgets
+  // Helper functions
   
-  window.debounce = function debounce(fn, delay) {
+  function debounce(fn, delay) {
     var timer = null;
     return function () {
       var context = this, args = arguments;
@@ -438,22 +437,6 @@
         fn.apply(context, args);
       }, delay);
     };
-  }
-
-  window.parseXML = function parseXML(xml) {
-    var doc = null;
-    try {
-      if (window.ActiveXObject) {
-        doc = new ActiveXObject("Microsoft.XMLDOM");
-        doc.loadXML(xml);
-      }
-      else {
-        doc = (new DOMParser).parseFromString(xml, "text/xml");
-      }
-    } catch(e){
-      doc = null;
-    }
-    return doc;
   }
       
 })();
