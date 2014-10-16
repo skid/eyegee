@@ -201,13 +201,13 @@ main section.col-4 {
   width: auto;
   margin-right: 3px;
 }
-.widget-container .widget-edit-panel .widget-edit-section input:not(type=radio):not(type=checkbox) {
-  box-sizing: border-box;
-  width: calc(100% - 50px);
-}
 .widget-container .widget-edit-panel .widget-edit-section .widget-edit-group {
   font-size: 0.9em;
   margin-left: 5px;
+}
+.widget-container .widget-edit-panel .widget-edit-section input:not([type='checkbox']):not([type='radio']) {
+  box-sizing: border-box;
+  width: calc(100% - 50px);
 }
 .widget-container .widget-edit-panel .widget-edit-section button {
   background: none;

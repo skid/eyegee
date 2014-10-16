@@ -4,7 +4,7 @@ var less   = require('gulp-less');
 var rename = require('gulp-rename');
 
 gulp.task('compileall', function(){
-  gulp.src('./static/**/css/*.less')
+  gulp.src('./static/**/*.less')
     .pipe(rename(function(path){
       path.extname = ".css";
     }))
@@ -13,7 +13,7 @@ gulp.task('compileall', function(){
 });
 
 gulp.task('default', ['compileall'], function(){
-  gulp.watch('./static/**/css/*.less', function(event){
+  gulp.watch('./static/css/*.less', function(event){
     gulp.src(event.path)
       .pipe(rename(function(path){
         path.extname = ".css";

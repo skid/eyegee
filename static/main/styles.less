@@ -211,14 +211,14 @@ main {
         }
       }
 
-      input:not(type=radio):not(type=checkbox) {
-        box-sizing: border-box;
-        width: ~"calc(100% - 50px)";
-      }
-
       .widget-edit-group {
         font-size: 0.9em;
         margin-left: 5px;
+      }
+
+      input:not([type='checkbox']):not([type='radio']) {
+        box-sizing: border-box;
+        width: ~"calc(100% - 50px)";
       }
       
       // Buttons inside the edit panel use svg icons
