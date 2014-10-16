@@ -231,12 +231,12 @@
         scope.widgetId = attrs.widgetId;
 
         if(val){
-          microload('/static/' + val + '/css/styles.css');
-          microload('/static/' + val + '/js/controller.js', function(){
+          microload('/static/' + val + '/styles.css');
+          microload('/static/' + val + '/controller.js', function(){
             // TODO: Find out why passing a function that reads the widget-body attribute
             // to the templateUrl in the Directive Definition Map doesn't work ...
             $http
-              .get('/static/' + val + '/templates/widget.html', { cache: $templateCache })
+              .get('/static/' + val + '/widget.html', { cache: $templateCache })
               .success(function(html){
                 // This will populate the widget's html contents
                 // Take a look at static/<module_name>/templates/widget.html

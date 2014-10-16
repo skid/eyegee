@@ -368,7 +368,7 @@ app.use('/', function(req, res, next){
 // Render index.html
 app.use('/', function(req, res, next){
   // TODO: Pipe the file to the response
-  fs.readFile("index.html", function(err, html){
+  fs.readFile("static/main/index.html", function(err, html){
     res.writeHead(200, "OK");
     res.end(html);
   });
