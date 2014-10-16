@@ -115,7 +115,7 @@ section#login-section div.form-errors {
 .widget-edit-panel .widget-edit-section label {
   color: #f57c00;
 }
-.widget-edit-panel .widget-edit-section label.inline {
+.widget-edit-panel .widget-edit-section label.darker {
   color: rgba(0, 0, 0, 0.54);
 }
 .widget-edit-panel .widget-edit-section input {

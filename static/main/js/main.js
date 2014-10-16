@@ -145,7 +145,7 @@
 
     saveState: function(callback){
       this.setPositionPreferences();
-      
+
       // Filter out only JSON-serializable properties of the widgets.
       // We will always save the entire state because we don't expect much data.
       var columns = this.columns.map(function(c){
@@ -169,7 +169,7 @@
       });
     }
   }
-  
+
   /**
    * The one and only module that handles the basic stuff.
   **/
@@ -189,7 +189,14 @@
       return $sce.trustAsResourceUrl('/static/main/icons.svg#' + icon);
     };
   });
-
+  
+  // Needed for other urlsw
+  app.filter('url', function($sce){
+    return function(url) {
+      return $sce.trustAsResourceUrl(url);
+    };
+  });
+  
   // Needed for dynamically loading controllers (https://coderwall.com/p/y0zkiw)
   app.config(function($controllerProvider, $compileProvider, $filterProvider, $provide){
     app.lazy = {
@@ -200,7 +207,6 @@
       service: $provide.service
     }
   });
-  
   
   /**
    * The widgetItem directive will render the widgets.
@@ -234,12 +240,7 @@
               .success(function(html){
                 // This will populate the widget's html contents
                 // Take a look at static/<module_name>/templates/widget.html
-                element.html(html);
-              })
-              .then(function(response){
-                // This will initialize the controller dynamically
-                // Take a look at static/<module_name>/js/controller.js
-                element.replaceWith($compile(element.html())(scope));
+                element.replaceWith( $compile(html)(scope) );
               });
           });
         }
@@ -423,9 +424,12 @@
   });
   
   
+
+
+  // Global Helper functions
+  // These have nothing to do with Angular, but I need them in various widgets
   
-  // Helper function used in the main controller
-  function debounce(fn, delay) {
+  window.debounce = function debounce(fn, delay) {
     var timer = null;
     return function () {
       var context = this, args = arguments;
@@ -434,5 +438,22 @@
         fn.apply(context, args);
       }, delay);
     };
-  }      
+  }
+
+  window.parseXML = function parseXML(xml) {
+    var doc = null;
+    try {
+      if (window.ActiveXObject) {
+        doc = new ActiveXObject("Microsoft.XMLDOM");
+        doc.loadXML(xml);
+      }
+      else {
+        doc = (new DOMParser).parseFromString(xml, "text/xml");
+      }
+    } catch(e){
+      doc = null;
+    }
+    return doc;
+  }
+      
 })();

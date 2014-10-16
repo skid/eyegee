@@ -24,3 +24,8 @@
 - In Firefox sources can't be added.
 
 - Style the "no RSS items" message.
+
+
+### Comic
+
+- Send an email when a comic fails to parse multiple times

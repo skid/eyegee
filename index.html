@@ -66,7 +66,14 @@
     <main ng-controller="MainController">
 
       <section ng-repeat="column in columns" class="column wb-column col-{{ columns.length }}" widgetbox-column='wb-column' widgetbox-column-id="{{ $index }}">
-        <div ng-repeat="widget in column" class="widget-container wb-widget" widgetbox-widget='wb-widget' widgetbox-draghandle=".widget-header" widgetbox-widget-id="{{ $index }}">
+        
+        <!-- start of widget -->
+        <div ng-repeat="widget in column" 
+             ng-class="{'widget-container': 1, 'wb-widget': 1, empty: !widget.$loaded}"
+             widgetbox-widget='wb-widget'
+             widgetbox-draghandle=".widget-header"
+             widgetbox-widget-id="{{ $index }}">
+
           <div class="widget-loading-overlay" ng-show="widget.$working">
             <svg viewBox="0 0 96 96"><use xlink:href="/static/main/icons.svg#settings"></use></svg>
           </div>
@@ -91,12 +98,11 @@
 
           <widget-body ng-show="widget.module" module="{{ widget.module }}" widget-id="{{ widget.id }}"></widget-body>
         </div>
+        <!-- end of widget -->
+
       </section>
-
     </main>
-
     <footer></footer>
-
   </body>
 </html>
 

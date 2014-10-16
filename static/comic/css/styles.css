@@ -1,6 +1,13 @@
-.comic-item {
-  text-align: center;
+.comic-strip-container {
+  width: 100%;
+  max-height: 300px;
+  overflow-y: auto;
 }
-.comic-item img {
-  max-width: 100% !important;
+.comic-strip-container img {
+  display: block;
+  width: 100%;
+}
+.comic-strip-container .comic-error-message {
+  margin: 10px;
+  font-size: 1.2em;
 }

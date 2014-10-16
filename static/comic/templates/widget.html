@@ -1,8 +1,29 @@
-<div ng-controller="ComicController">  
-  <p>{{ module }} Widget</p>
-  <p>Imagine a funny pic here</p>
+<div ng-controller="ComicController">
   
-  <p>The widget id is bound in the widget-id attribute of the  widget-body directive</p>
-  <p>Then in the ComicController it's assigned to the "id" scope attribute: {{ id }}</p>
-  <p>This is acquired through the modelFactory. The site name is <b>{{siteName}}</p>
+  <!-- Shown when the widget has the "isEdited" flag set to true -->
+  <div class="widget-edit-panel" ng-show="isEdited">    
+    <div class="widget-edit-section">
+      <label>Select Comic strip</label>
+      <label ng-repeat="c in comics" class="darker">
+        <input type="radio" ng-model="$parent.index" value="{{$index}}"> {{c.name}}
+      </label>
+    </div>
+
+    <div class="widget-bottom-controls">
+      <!-- Show the cancel button only for existing widgets -->
+      <button ng-click="widget.remove()" ng-show="!widget.isNew">
+        <svg viewBox="0 0 96 96"><use xlink:href="/static/main/icons.svg#delete"></use></svg>
+      </button>
+      <button ng-click="saveSettings()">
+        <svg viewBox="0 0 96 96"><use xlink:href="/static/main/icons.svg#check"></use></svg>
+      </button>
+    </div>
+  </div>
+
+  <div ng-show="!isEdited" class="comic-strip-container">
+    <image ng-show="!error" ng-if="src" ng-src="{{ src|url }}">
+    <div class='comic-error-message' ng-show="error">
+      {{error}}
+    </div>
+  </div>
 </div>

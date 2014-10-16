@@ -126,6 +126,9 @@ main section.col-4 {
   border: solid 1px transparent;
   padding: 3px;
 }
+.widget-container.empty {
+  min-height: 200px;
+}
 .widget-container .widget-loading-overlay {
   position: absolute;
   top: 0;
@@ -198,7 +201,7 @@ main section.col-4 {
   width: auto;
   margin-right: 3px;
 }
-.widget-container .widget-edit-panel .widget-edit-section input {
+.widget-container .widget-edit-panel .widget-edit-section input:not(type=radio):not(type=checkbox) {
   box-sizing: border-box;
   width: calc(100% - 50px);
 }

@@ -142,6 +142,10 @@ main {
   border:        solid 1px transparent;
   padding:       3px;
   
+  &.empty {
+    min-height: 200px;
+  }
+  
   .widget-loading-overlay {
     position: absolute;
     top: 0;
@@ -207,7 +211,7 @@ main {
         }
       }
 
-      input {
+      input:not(type=radio):not(type=checkbox) {
         box-sizing: border-box;
         width: ~"calc(100% - 50px)";
       }
