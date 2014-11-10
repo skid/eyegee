@@ -1,72 +1,68 @@
-(function(){
-  function parseXML(xml) {
-    var doc = null;
+(function(){  
+  function parseDOM(content, asXML) {
     try {
-      if (window.ActiveXObject) {
-        doc = new ActiveXObject("Microsoft.XMLDOM");
-        doc.loadXML(xml);
-      }
-      else {
-        doc = (new DOMParser).parseFromString(xml, "text/xml");
-      }
+      return (new DOMParser).parseFromString(content, asXML ? "text/xml" : "text/html");
     } catch(e){
-      doc = null;
+      return null;
     }
-    return doc;
   }
   
   // RSS parser
   function parseRSS(xml) {
-    var channel, feed = {};
-    channel = $('channel', xml).eq(0);
-    feed.version = $('rss', xml).length == 0 ? '1.0' : $('rss', xml).eq(0).attr('version');
-    feed.title = channel.find('title:first').text();
-    feed.link = channel.find('link:first').text();
-    feed.description = channel.find('description:first').text();
-    feed.language = channel.find('language:first').text();
-    feed.updated = channel.find('lastBuildDate:first').text();
+    var feed = {}; 
+    var channel = xml.querySelector('channel');
+
+    feed.version = xml.querySelector('rss') === null ? '1.0' : xml.querySelector('rss').getAttribute('verson');
+    feed.title = channel.querySelector('title') && channel.querySelector('title').textContent;
+    feed.link = channel.querySelector('link') && channel.querySelector('link').textContent;
+    feed.description = channel.querySelector('description') && channel.querySelector('description').textContent;
+    feed.language = channel.querySelector('language') && channel.querySelector('language').textContent;
+    feed.updated = new Date(channel.querySelector('lastBuildDate') && channel.querySelector('lastBuildDate').textContent);
     feed.items = new Array();
-  
-    $('item', xml).each(function() {
-      var item = $(this);
+    
+    var item;
+    var items = xml.querySelectorAll('item');
+    for(var i=0, ii=items.length; i<ii; ++i){
+      item = items[i];
       feed.items.push({
-        title: item.find('title').eq(0).text(),
-        link: item.find('link').eq(0).text(),
-        description: item.find('description').eq(0).text(),
-        updated: item.find('pubDate').eq(0).text(),
-        id: item.find('guid').eq(0).text(),
-        comments: item.find('comments').eq(0).text(),
-      });      
-    });
+        title:        item.querySelector('title').textContent,
+        link:         item.querySelector('link').textContent,
+        description:  item.querySelector('description').textContent,
+        updated:      new Date(item.querySelector('pubDate') && item.querySelector('pubDate').textContent),
+        id:           item.querySelector('guid') && item.querySelector('guid').textContent,
+        comments:     item.querySelector('comments') && item.querySelector('comments').textContent
+      });
+    }
+    
     return feed;
   }
 
-
   // Atom parser
   function parseAtom(xml){
-    var channel, feed = {};
-  
-    channel = $('feed', xml).eq(0);
+    var channel = xml.querySelector('feed');
+    var feed = {};
+
     feed.version = '1.0';
-    feed.title = channel.find('title:first').text();
-    feed.link = channel.find('link:first').attr('href');
-    feed.description = channel.find('subtitle:first').text();
-    feed.language = channel.attr('xml:lang');
-    feed.updated = channel.find('updated:first').text();
+    feed.title = channel.querySelector('title') && channel.querySelector('title').textContent;
+    feed.link = channel.querySelector('link') && channel.querySelector('link').getAttribute('href');
+    feed.description = channel.querySelector('subtitle') && channel.querySelector('subtitle').textContent;
+    feed.language = channel.getAttribute('xml:lang') && channel.getAttribute('xml:lang');
+    feed.updated = new Date(channel.querySelector('updated') && channel.querySelector('updated').textContent);
     feed.items = new Array();
-
-    $('entry', xml).each( function() {
-      var item = $(this);
+    
+    var item;
+    var items = xml.querySelectorAll('entry');
+    for(var i=0, ii=items.length; i<ii; ++i){
+      item = items[i];
       feed.items.push({
-        title: item.find('title').eq(0).text(),
-        link: item.find('link').eq(0).attr('href'),
-        description: item.find('content').eq(0).text(),
-        updated: item.find('updated').eq(0).text(),
-        id: item.find('id').eq(0).text(),
-        comments: item.find('comments').eq(0).text()
+        title: item.querySelector('title').textContent,
+        link: item.querySelector('link').getAttribute('href'),
+        description: item.querySelector('content').textContent,
+        updated: new Date(item.querySelector('updated') && item.querySelector('updated').textContent),
+        id: item.querySelector('id') && item.querySelector('id').textContent,
+        comments: item.querySelector('comments') && item.querySelector('comments').textContent
       });
-    });
-
+    }
     return feed;
   }
 
@@ -76,7 +72,7 @@
    * Returns an array of found links' href attributes or null if the parsing fails or no links are found.
   **/
   function findRSSLinks(html){
-    var doc    = parseXML(html);
+    var doc    = parseDOM(html);
     var links  = doc ? doc.querySelectorAll("link[type='application/rss+xml'], link[type='application/atom+xml']") : [];
     var result = [];
 
@@ -94,7 +90,7 @@
    * Returns null if it fails.
   **/
   function parseFeed(xml){
-    var doc = parseXML(xml);
+    var doc = parseDOM(xml, true);
 
     if(doc && doc.querySelectorAll('channel').length){
       return parseRSS(doc);
@@ -105,7 +101,6 @@
 
     return null;
   }
-  
   
   /**
    * A directive for the rss item preview pane.
@@ -123,13 +118,13 @@
       }
     };
   });
-  
+
   // Need to account for the "all" option instead of just numbers
   angular.module('eyegeeApp').lazy.filter('loopRss', function() {
     // This filter is similar to the limitTo filter, except that
     // passing the string "all" as the limit parameter will loop over all array elements.
     return function(input, itemCount) {
-      return itemCount === 'all' ? input : input.slice(0, itemCount);
+      return itemCount === 'all' || !input ? input : input.slice(0, itemCount);
     };
   });
 
@@ -137,7 +132,7 @@
    * Angular controller for RSS widgets.
    * Has a separate instance for each widget on the page.
   **/
-  angular.module('eyegeeApp').lazy.controller('RssController', function ($scope, $http, $timeout, model, appconfig) {
+  angular.module('eyegeeApp').lazy.controller('RssController', function ($scope, $rootScope, $http, $timeout, model, appconfig) {
     // Note for myself:
     // The following code runs only once per widget
     var widget = model.getWidgetById( $scope.widgetId );
@@ -179,6 +174,7 @@
     $scope.itemCount  = widget.itemCount || 10;
     $scope.items      = [];
     $scope.title      = widget.title || "";
+    $scope.errors     = [];
 
     // Upon initilization, we immediately show the edit screen if the widget is new
     // The __editToken is set to true when the user selects the widget's module
@@ -263,11 +259,19 @@
       }
       $scope.preview = item;
       $scope.previewTarget = node;
+
+      // This is handled in the escHandler directive in the main controller.
+      $rootScope.eyegeeEscQueue.push(function(){
+        $scope.hidePreview();
+        $scope.$apply();
+      });
     }
+
     $scope.hidePreview = function(item){
       $scope.preview = null;
       $scope.previewTarget = null;
     }
+
 
     /**
      * Loads and parses the actual feeds
@@ -283,7 +287,15 @@
       
       widget.$working = counter ? 1 : 0;
 
+      // Don't wait for the feeds forever
+      var timeout = setTimeout(function(){
+        done();
+        $scope.$apply();
+        counter = 0;
+      }, appconfig.loadTimeout);
+
       function done(){
+        clearTimeout(timeout);
         widget.$working = 0;
 
         if(feeds.length === 1) {
@@ -295,15 +307,32 @@
           feeds.forEach(function(feed){
             $scope.items = $scope.items.concat(feed.items);
           });
+          
+          // Sort items by last updated
+          $scope.items.sort(function(a, b){
+            return isNaN(a.updated.getTime()) ? 1 : a.updated > b.updated ? -1 : b.updated > a.updated ? 1 : 0;
+          });
+
+          // Remove duplicate links
+          var item, existing = {};
+          for(var i=0, ii=$scope.items.length; i<ii; ++i){
+            item = $scope.items[i];
+            if(item.link in existing){
+              $scope.items.splice(i--, 1);
+            }
+            else {
+              existing[item.link] = 1;
+            }
+          }
         }
         else {
           $scope.items = null;
         }
-        
+
         // Setting this flag will remove the "empty" class on the widget container
         widget.$loaded = true;
       }
-
+      
       widget.sources.forEach(function(source){
         $http({ url: '/proxy', method: 'POST', data: {source: source} })
         .success(function(data, status, headers, config){
@@ -338,11 +367,19 @@
 
       // Mark the source as being checked
       $scope.sourceInfo[source] = "checking";
-
-      $http({ url: '/proxy', method: 'POST', data: {source: source} })
+      
+      $http({ 
+        url: '/proxy', 
+        method: 'POST', 
+        data: { source: source } 
+      })
       .success(function(data, status, headers, config){
         var links, feed;
-        
+
+        // Parses the original source
+        var mainSource = document.createElement('a');
+        mainSource.href = headers("X-Source") || source;
+
         // Page is an RSS feed, mark the source as valid
         if(feed = parseFeed(data)){
           $scope.sourceInfo[source] = "valid";
@@ -352,13 +389,22 @@
         }
         // Page contains rss feeds, replace the current source with all of them and check them
         else if(links = findRSSLinks(data)){
-          var oldIndex = $scope.sources.indexOf(source);
+          var link, oldIndex = $scope.sources.indexOf(source);
 
           $scope.sources.splice(oldIndex, 1);
           delete $scope.sourceInfo[source];
 
           for(var i = 0; i < links.length; ++i){
-            addSource(links[i], oldIndex + i);
+            link = document.createElement('a');
+            link.href = links[i];
+            
+            // Fix relative links
+            if(link.hostname !== mainSource.hostname){
+              link.hostname = mainSource.hostname;
+              link.port = 80;
+            }
+
+            addSource(link.href, oldIndex + i);
           };
         }
         // Can't fetch page, mark the source as invalid and remove it
@@ -374,6 +420,5 @@
         widget.$working -= 1;
       });
     }
-
   });
 })();

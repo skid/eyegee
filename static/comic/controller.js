@@ -6,6 +6,7 @@
   var xkcd_re = /\<div\s+id=\"comic\"\>\s+\<img\s+src=\"([^"]+)\"/;
   var dilbert_re = /\<img\s+src="([^"]+)"\s+title="The\s+Dilbert\s+Strip\s+for\s+[^"]+"\s+\/\>/;
   var cyanide_re = /\<img\s+alt\=\"Cyanide\s+and\s+Happiness\,\s+a\s+daily\s+webcomic\"\s+src=\"([^"]+)\"\s+border\=0\>/;
+
   var parserFunctions = [
     function xkcd(html){
       var match = html.match(xkcd_re);
@@ -91,18 +92,28 @@
     function loadSrc(callback){
       var comic = $scope.comics[$scope.index];
       
-      widget.$working += 1;
+      widget.$working = 1;
       widget.title  = comic.name;
       widget.link   = comic.source;
       widget.$loaded = false;
       
       $scope.src = "";
       $scope.error = "";
+      
+      // Don't wait for the page forever
+      var timeout = setTimeout(function(){
+        $scope.error = "Can't load comic strip";
+        $scope.widget.$working = 0;
+        $scope.widget.$loaded = true;
+        $scope.$apply();
+      }, appconfig.loadTimeout);
 
       $http({ url: '/proxy', method: 'POST', data: {source: comic.url} })
       .success(function(data, status, headers, config){
+        clearTimeout(timeout);
+        
         $scope.src = parserFunctions[$scope.index](data);
-        $scope.widget.$working -= 1;
+        $scope.widget.$working = 0;
         $scope.widget.$loaded = true;
         
         if(!$scope.src) {
@@ -113,9 +124,11 @@
         }
       })
       .error(function(){
+        clearTimeout(timeout);
+
         $scope.error = "Can't load comic strip";
         $scope.widget.$loaded = true;
-        $scope.widget.$working -= 1;
+        $scope.widget.$working = 0;
       })
     }
   });

@@ -97,37 +97,69 @@ section#header-section {
 }
 
 section#login-section {
+  position:   absolute;
   overflow:   hidden;
-  margin:     0 0 10px;
-  width:      100%;
-  height:     65px;
+  margin:     0 5px;
+  opacity:    0;
+  visibility: hidden;
+  padding:    10px 0;
   z-index:    1;
-  text-align: center;
   
-  transition: 0.2s cubic-bezier(0.215, 0.61, 0.355, 1) margin;
+  transition: 0.2s cubic-bezier(0.215, 0.61, 0.355, 1) margin,
+              0.2s cubic-bezier(0.355, 0.61, 0.215, 1) opacity;
   
   &.shown {
-    margin:      75px 0 0;
-    transition:  0.2s cubic-bezier(0.355, 0.61, 0.215, 1) margin;
+    margin:      75px 5px;
+    opacity:     1;
+    visibility:  visible;
+    transition:  0.2s cubic-bezier(0.355, 0.61, 0.215, 1) margin, 
+                 0.2s cubic-bezier(0.355, 0.61, 0.215, 1) opacity;
   }
   
-  input, button {
-    margin: 0 5px;
+  p {
+    margin: 0 10px;
   }
-  input {
-    width: 150px;
+  
+  .form-row {
+    margin: 10px 10px;
+
+    label {
+      display: block;
+      font-size: 0.9em;
+      margin: 8px 0 4px 2px;
+      
+      &.checkbox {
+        display: inline-block;
+        margin:  0 0 0 10px;
+      }
+    }
+  }
+  
+  input:not([type="checkbox"]), button {
+    box-sizing: border-box;
+  }
+  input:not([type="checkbox"]) {
+    width: 300px;
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
 // MAIN SECTION AND WIDGETS
 ////////////////////////////////////////////////////////////////////////////////////
-main {  
-  section {
-    float:          left;
-    padding-bottom: 200px !important;
+main { 
+  display: table;
+  min-height: 100%;
+  width: 100%;
+  margin-top: 75px;
 
-    &[class^=col] { box-sizing: border-box; }
+  section {
+    padding-bottom: 200px !important;
+    display:        table-cell;
+    vertical-align: top;
+    
+    &[class^=col] { 
+      box-sizing: border-box;
+    }
     &.col-1 { width: 100%; padding: 10px 5px; }
     &.col-2 { width: 50%; padding: 10px 5px; }
     &.col-3 { width: 33%; padding: 10px 5px; }
@@ -210,7 +242,12 @@ main {
           }
         }
       }
-
+      
+      small.explanation {
+        display: block;
+        margin:  -2px 0 4px 2px;
+      }
+      
       .widget-edit-group {
         font-size: 0.9em;
         margin-left: 5px;
@@ -285,4 +322,7 @@ main {
 .widgetbox-placeholder {
   height: 100px;
   margin: 0 0 10px;
+}
+.angular-widgetbox-dragged {
+  z-index: 999;
 }

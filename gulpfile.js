@@ -13,7 +13,7 @@ gulp.task('compileall', function(){
 });
 
 gulp.task('default', ['compileall'], function(){
-  gulp.watch('./static/css/*.less', function(event){
+  gulp.watch('./static/**/*.less', function(event){
     gulp.src(event.path)
       .pipe(rename(function(path){
         path.extname = ".css";

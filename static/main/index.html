@@ -13,10 +13,9 @@
     <link rel="stylesheet" href="/static/main/theme.css">
 
     <script src="/bower_components/microload/microload.js"></script>
-    <script src="/bower_components/jquery/jquery.min.js"></script>
     <script src="/bower_components/angular/angular.js"></script>
     <script src="/bower_components/angular-route/angular-route.js"></script>
-    <script src="/bower_components/angular-widgetbox/angular-widgetbox.min.js"></script>
+    <script src="/bower_components/angular-widgetbox/angular-widgetbox.js"></script>
     <script src="/bower_components/angular-ui-utils/keypress.js"></script>
     <script src="/bower_components/angular-sanitize/angular-sanitize.min.js"></script>
 
@@ -24,9 +23,8 @@
     <script src="/static/main/controller.js"></script>
   </head>
 
-  <body>    
+  <body esc-handler>
     <header ng-controller="NavigationController">
-      
       <section id="header-section">
         <h1 class="main-title">EyeGee</h1>
         <nav class="main">
@@ -40,22 +38,54 @@
       </section>
 
       <section id="login-section" ng-class="{shown: session.isFormOpen, user: 1}" ng-init="isLoginOpen=false">
-        <div ng-show="session.isAnon" class="form-row form-fields">
-          Please type your <input ng-model="session.email" placeholder="email" id="input-email"> 
-          and <input ng-model="session.password" type="password" placeholder="password" id="input-password">
-          and press <button ng-click="doSignIn()">Login</button>
-          or <input ng-model="session.password2" type="password" placeholder="repeat the password" id="input-password2"> 
-          and <button ng-click="doRegister()">Sign Up</button> already!
+        
+        <div ng-show="session.isAnon">
+          <p class="greeting">Hello. Login or Register.</p>
+          <p class="instructions">If you sign up, your widgets will be saved</p>
+          
+          <div class="form-row form-fields">
+            <label for="input-email">Email</label>
+            <input ng-model="session.email" id="input-email"> 
+            <label for="input-password">Password</label>
+            <input ng-model="session.password" type="password" id="input-password">
+          </div>
+          <div class="form-row form-fields">
+            <button ng-click="doSignIn()">Login</button>
+            <button ng-click="doForgotten()">Forgot Password?</button>
+          </div>
+          <div class="form-row form-fields">
+            <label for="input-password2">Repeat Password</label>
+            <input ng-model="session.password2" type="password" id="input-password2"> 
+          </div>
+          <div class="form-row form-fields">
+            <button ng-click="doRegister()">Register</button>
+          </div>
         </div>
-        <div ng-show="!session.isAnon" class="form-row form-fields">
-          You are logged in. You can now <button ng-click="doSignOut()">Logout</button>
-          or <button ng-click="doRegister(true)">Update</button>
-          your <input ng-model="session.email" placeholder="email" id="input-email">
-          and <input ng-model="session.password" type="password" placeholder="password" id="input-password">
-          but first <input ng-model="session.password2" type="password" placeholder="repeat the password" id="input-password2"> 
+        
+        <div ng-show="!session.isAnon">
+          <p class="greeting">You are logged in as {{email}}</p>
+          <p class="instructions">
+            To change your email or password, please fill out all fields<br>
+            and click Update
+          </p>
+
+          <div class="form-row form-fields">
+            <label for="input-email">Email</label>
+            <input ng-model="session.email" id="input-email">
+            <label for="input-password">Password</label>
+            <input ng-model="session.password" type="password" id="input-password">
+            <label for="input-password2">Repeat Password</label>
+            <input ng-model="session.password2" type="password" id="input-password2"> 
+          </div>
+          
+          <div class="form-row form-fields">
+            <button ng-click="doSignOut()">Logout</button>
+            <button ng-click="doRegister(true)">Update</button>
+          </div>
         </div>
+
         <div class="form-errors">
-          <p ng-show="session.error">{{session.error}}</p>
+          <p ng-bind-html="session.error" ng-show="session.error"></p>
         </div>
       </section>
       
@@ -72,7 +102,8 @@
              widgetbox-widget='wb-widget'
              widgetbox-draghandle=".widget-header"
              widgetbox-widget-id="{{ $index }}">
-
+            
+          <div class="widget-blur-filter"></div>
           <div class="widget-loading-overlay" ng-show="widget.$working">
             <svg viewBox="0 0 96 96"><use xlink:href="/static/main/icons.svg#settings"></use></svg>
           </div>

@@ -77,28 +77,53 @@ section#header-section nav.main button svg {
   margin: 0px auto 5px;
 }
 section#login-section {
+  position: absolute;
   overflow: hidden;
-  margin: 0 0 10px;
-  width: 100%;
-  height: 65px;
+  margin: 0 5px;
+  opacity: 0;
+  visibility: hidden;
+  padding: 10px 0;
   z-index: 1;
-  text-align: center;
-  transition: 0.2s cubic-bezier(0.215, 0.61, 0.355, 1) margin;
+  transition: 0.2s cubic-bezier(0.215, 0.61, 0.355, 1) margin, 0.2s cubic-bezier(0.355, 0.61, 0.215, 1) opacity;
 }
 section#login-section.shown {
-  margin: 75px 0 0;
-  transition: 0.2s cubic-bezier(0.355, 0.61, 0.215, 1) margin;
+  margin: 75px 5px;
+  opacity: 1;
+  visibility: visible;
+  transition: 0.2s cubic-bezier(0.355, 0.61, 0.215, 1) margin, 0.2s cubic-bezier(0.355, 0.61, 0.215, 1) opacity;
 }
-section#login-section input,
+section#login-section p {
+  margin: 0 10px;
+}
+section#login-section .form-row {
+  margin: 10px 10px;
+}
+section#login-section .form-row label {
+  display: block;
+  font-size: 0.9em;
+  margin: 8px 0 4px 2px;
+}
+section#login-section .form-row label.checkbox {
+  display: inline-block;
+  margin: 0 0 0 10px;
+}
+section#login-section input:not([type="checkbox"]),
 section#login-section button {
-  margin: 0 5px;
+  box-sizing: border-box;
 }
-section#login-section input {
-  width: 150px;
+section#login-section input:not([type="checkbox"]) {
+  width: 300px;
+}
+main {
+  display: table;
+  min-height: 100%;
+  width: 100%;
+  margin-top: 75px;
 }
 main section {
-  float: left;
   padding-bottom: 200px !important;
+  display: table-cell;
+  vertical-align: top;
 }
 main section[class^=col] {
   box-sizing: border-box;
@@ -201,6 +226,10 @@ main section.col-4 {
   width: auto;
   margin-right: 3px;
 }
+.widget-container .widget-edit-panel .widget-edit-section small.explanation {
+  display: block;
+  margin: -2px 0 4px 2px;
+}
 .widget-container .widget-edit-panel .widget-edit-section .widget-edit-group {
   font-size: 0.9em;
   margin-left: 5px;
@@ -274,4 +303,7 @@ main section.col-4 {
 .widgetbox-placeholder {
   height: 100px;
   margin: 0 0 10px;
+}
+.angular-widgetbox-dragged {
+  z-index: 999;
 }

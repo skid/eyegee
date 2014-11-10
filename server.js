@@ -146,8 +146,17 @@ app.use("/register", function(req, res, next){
   db.get('user:' + req.body.email, function(err, user){
     if(err){ return next(err); }
     
+    try {
+      user = JSON.parse(user);
+    }
+    catch(e){
+      res.body = { status: "error", statusCode: 500, message: "Can't load user data" };
+      return next();
+    }
+    
     // If that email exists and it's not the currently logged user's email
     // disallow changes.
+    console.log(user, req.user.email)
     if(user && user.email !== req.user.email){
       res.body = { status: "error", statusCode: "401", message: "That account is already taken" };
       next();
@@ -265,17 +274,22 @@ app.use('/proxy', function(req, res, next){
 
     // Result found in cache
     if(result){
+      var headers = {};
       
       if(binary) {
         var result = result.split("\n\n");
-        res.writeHead(200, "OK", JSON.parse(result[0]));
+        headers = JSON.parse(result[0]);
         result = new Buffer(result[1], 'base64');
       }
       
-      setTimeout(function(){
-        return res.end(result);
-      }, 2000);
-
+      headers['X-Source'] = source;
+      res.writeHead(200, "OK", headers);
+      
+      // setTimeout(function(){
+      //   res.end(result);
+      // }, 20000);
+      // return
+      return res.end(result);
     }
     
     request({ url: source, encoding: binary ? null : undefined }, function(err, response, body){
@@ -283,6 +297,7 @@ app.use('/proxy', function(req, res, next){
         res.body = { statusCode: 500, status: 'error', message: 'Request Error (' + err.code + ')' };
         return next();
       }
+
       if(response.statusCode !== 200) {
         res.body = { statusCode: 504, status: 'error', message: 'Server Error (' + response.statusCode + ')' };
         return next();
@@ -291,6 +306,8 @@ app.use('/proxy', function(req, res, next){
       if(binary){
         db.set('cache-binary:' + source, JSON.stringify(response.headers) + "\n\n" + body.toString('base64'));
         db.pexpire('cache-binary:' + source, CACHE_TTL);
+        
+        response.headers['X-Source'] = source;
         res.writeHead(200, "OK", response.headers);
         return res.end(body);
       }
@@ -300,6 +317,9 @@ app.use('/proxy', function(req, res, next){
       // we're gonna need to fetch it again.
       db.set('cache:' + source, body);
       db.pexpire('cache:' + source, CACHE_TTL);
+
+      var headers = { "X-Source": source };
+      res.writeHead(200, "OK", headers);
       res.end(body);
     });
 

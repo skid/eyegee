@@ -61,22 +61,28 @@
       this._columnCount = colCount;
       this.setColumns(this.columns);
     },
-    
+
     setColumns: function(widgets){
       var col, pos, min, preference, widget, flat = [];
-
+      var ccount = this._columnCount;
+      
       // Get a flat list of the widgets
       widgets.forEach(function(c){ 
         flat = flat.concat(c); 
       });
-
+      // Put the widgets with position preference first
+      // So we can see which places are left for widgets with no preferences.
+      flat = flat.sort(function(a, b){
+        return a[ccount] ? -1 : b[ccount] ? 1 : 0;
+      });
+      
       var i = 0;
       var columns = new Array(this._columnCount);
-      while(i < this._columnCount) { 
+      while(i < ccount) { 
         columns[i++] = [];
       }
 
-      while(widget = flat.shift()){ 
+      while(widget = flat.shift()){
         if(preference = widget[this._columnCount]){
           col = preference.col;
           pos = preference.pos;
@@ -124,12 +130,21 @@
     },
 
     addWidget: function(){
-      // TODO: Determine next widget position
-      this.columns[0].push({ 
+      var widget = { 
         module: null, 
-        id: "new-" + this.guid(), 
-        title: this.appconfig.newWidgetTitle 
-      });
+        title: this.appconfig.newWidgetTitle,
+        id: "new-" + this.guid()
+      };
+      var columns = this.columns;
+      var low = 0;
+
+      columns.forEach(function(col, index){
+        if(col.length < columns[low].length){
+          low = index;
+        }
+      });      
+      this.columns[low].push(widget);
+      return low;
     },
 
     removeWidget: function(widget){
@@ -170,33 +185,36 @@
     }
   }
 
+
+
   /**
    * The one and only module that handles the basic stuff.
   **/
   var app = angular.module('eyegeeApp', ['ngRoute', 'widgetbox', 'ui.keypress', 'ngSanitize']);
-  
+
   // The model is used by other controllers too  
   app.constant('model', model);
-  
+
   // Global configuration goes here
   app.constant('appconfig', {
-   newWidgetTitle: "New Widget"
-  })
-  
+   newWidgetTitle: "New Widget",
+   loadTimeout: 6000
+  });
+
   // Needed for safe binding of dynamic svg icon urls
   app.filter('svgSource', function ($sce) {
     return function(icon) {
       return $sce.trustAsResourceUrl('/static/main/icons.svg#' + icon);
     };
   });
-  
-  // Needed for other urlsw
+
+  // Needed for other urls
   app.filter('url', function($sce){
     return function(url) {
       return $sce.trustAsResourceUrl(url);
     };
   });
-  
+
   // Needed for dynamically loading controllers (https://coderwall.com/p/y0zkiw)
   app.config(function($controllerProvider, $compileProvider, $filterProvider, $provide){
     app.lazy = {
@@ -207,7 +225,28 @@
       service: $provide.service
     }
   });
-  
+
+  /**
+   * A directive that will bind a global keydown listener
+   * and will execute actions based on the key pressed.
+  **/
+  app.directive('escHandler', function($document, $rootScope){
+    var q = $rootScope.eyegeeEscQueue = [];
+
+    return {
+      restrict: "A",
+      link: function(){
+        $document.bind('keydown', function(e){
+          if(e.which === 27){
+            var fn = q.pop();
+            (typeof fn === 'function') && fn();
+          }
+        });
+      }
+    }
+  });
+
+
   /**
    * The widgetItem directive will render the widgets.
    * It will have different behaviour based on the widget that calls it
@@ -216,7 +255,7 @@
    *
    * Check: http://onehungrymind.com/angularjs-dynamic-templates/
   **/
-  app.directive('widgetBody', function ($compile, $http, $templateCache) {
+  app.directive('widgetBody', function ($compile, $http, $templateCache, $timeout) {
     function widgetBodyLinker(scope, element, attrs) {
       /**
        * This is a very important observer.
@@ -244,10 +283,11 @@
               });
           });
         }
-      });
+      });      
     }
     return { restrict: "E", replace: true, link: widgetBodyLinker, scope: {} };
   });
+
 
   /**
    * The MainController provides a scope for the model and the callback
@@ -281,11 +321,11 @@
       
       // Apply the new position preferences
       model.setPositionPreferences();
-      
+
       // Save the new state.
       model.saveState();
     }
-    
+
     /**
      * Sets the module of a new widget
      * Once the module changes, the widgetBodyLinker function will load the controller
@@ -326,12 +366,16 @@
    * and user session management and/or registration.
    * I know, the choice for a name is poor.
   **/
-  app.controller('NavigationController', function($scope, $http, model){
-    
+  app.controller('NavigationController', function($scope, $rootScope, $http, $timeout, $sce, model){
     // Method invoked by the "new widget" button
     $scope.newWidget = function(){ 
-      model.addWidget();
-      // TODO: Scroll to widget
+      var colIndex = model.addWidget();      
+      $timeout(function(){
+        var colElement = document.querySelector('[widgetbox-column-id="' + colIndex + '"]');
+        var widElement = colElement.children[ colElement.children.length-1 ]
+        // We use 85 as an arbitrary padding.
+        document.body.scrollTop = widElement.getBoundingClientRect().top - 85;
+      });
     }
     
     $scope.session = {
@@ -354,7 +398,9 @@
         this.buttonTitle = this.isFormOpen ? "Forget That" : this.isAnon ? "Login/Register" : "Profile";
       }
     }
-
+    
+    $scope.email = USER.email || "";
+    
     // Set this automatically
     $scope.session.setSessionButtonTitle();
 
@@ -362,7 +408,15 @@
      * Opens the panel where the user email/password controls are located.
     **/
     $scope.toggleSessionForm = function(){ 
-      $scope.session.isFormOpen = !$scope.session.isFormOpen;
+      if($scope.session.isFormOpen = !$scope.session.isFormOpen){
+        document.getElementById('input-email').focus();
+        
+        // This is handled in the escHandler directive in the main controller.
+        $rootScope.eyegeeEscQueue.push(function(){
+          $scope.toggleSessionForm();
+          $scope.$apply();
+        });
+      }
       $scope.session.setSessionButtonTitle();
     }
     
@@ -398,6 +452,16 @@
       loginOrRegister("/register");
     }
     
+    /**
+     * Sends an email to the provided email address that contains
+     * a reset password link
+    **/
+    $scope.doForgotten = function(){
+      if(!$scope.session.email){
+        return $scope.session.error = $sce.trustAsHtml("Enter an email and we'll send you <br>a reset password link.");
+      }
+    }
+    
     function loginOrRegister(url){
       $scope.session.error = "";
 
@@ -415,6 +479,8 @@
         $scope.session.isFormOpen = false;
         $scope.session.setSessionButtonTitle();
         
+        $scope.email = data.user.email;
+
         model.setColumns(USER.widgets);
       })
       .error(function(data, status, headers, config){ 
@@ -423,11 +489,8 @@
     }
   });
   
-  
 
-
-  // Helper functions
-  
+  // Helper functions  
   function debounce(fn, delay) {
     var timer = null;
     return function () {
@@ -437,6 +500,5 @@
         fn.apply(context, args);
       }, delay);
     };
-  }
-      
+  }      
 })();

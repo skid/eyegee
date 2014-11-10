@@ -3,11 +3,12 @@
 @primary5: #e84e40;
 @primary7: #b0120a;
 
-// Primary colors are bluish
+// Secondary colors are bluish
 @secondary1: #b3e5fc;
 @secondary3: #40c4ff;
 @secondary5: #03a9f4;
 @secondary7: #0288d1;
+@secondary9: #01579b;
 
 // Accent colors are yellowish
 @accent1:  #ffe0b2;
@@ -30,13 +31,23 @@
 
 @-webkit-keyframes spin { 
   100% { 
-    -webkit-transform: rotate(360deg); 
-    transform:rotate(360deg); 
+    -webkit-transform: rotate(360deg);
+  } 
+}
+
+@keyframes spin { 
+  100% {
+    transform:rotate(360deg);
   } 
 }
 
 body {
   font-family: Roboto;
+  font-size: 14px;
+  background-image: url('./bg.jpg');
+  background-repeat: no-repeat;
+  background-size: 100% auto;
+  background-color: #2F77A3;
 }
 
 input:not([type='checkbox']):not([type='radio']), textarea {
@@ -54,13 +65,13 @@ input:not([type='checkbox']):not([type='radio']), textarea {
 }
 
 button {
-  border: solid 1px @primary5;
-  background-color: @primary5;
+  border: solid 1px @secondary5;
+  background-color: @secondary5;
   color: @text_lightest;
   outline: none;
 
   svg { 
-    fill: @primary1;
+    fill: @secondary1;
   }
   
   &:focus {
@@ -70,14 +81,38 @@ button {
 }
 
 section#header-section {
-  background-color: @primary1;
+  background-color: rgba(255, 255, 255, 1);
+  overflow: hidden;
   h1 {
     color: @primary7;
   }
 }
 
+section#header-section::before {
+  background: url('./bg.jpg') no-repeat center top;
+  background-size: 100% auto;
+  filter: blur(5px);
+  -webkit-filter: blur(5px);
+  
+  content: ' ';
+  opacity: 0.4;
+  
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 section#login-section {
   background: @grey50;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+  
+  .greeting {
+    color: @accent7;
+  }
+
+  label {
+    color: @secondary7;
+  }
   
   div.form-errors {
     margin-top: 5px;
@@ -88,7 +123,12 @@ section#login-section {
 .widget-container {
   border: none;
   border-radius: 3px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+  background: rgba(255, 255, 255, 0.95);
+    
+  &.angular-widgetbox-dragged {
+    opacity: 0.9;
+  }
   
   .widget-loading-overlay {
     background-color: fadeout(@secondary7, 50%);
@@ -98,6 +138,15 @@ section#login-section {
       -webkit-animation-duration: 2s;
       -webkit-animation-iteration-count: infinite;
       -webkit-animation-timing-function: linear;
+      -webkit-backface-visibility: hidden;
+      -webkit-perspective: 1000;
+
+      animation-name: spin;
+      animation-duration: 2s;
+      animation-iteration-count: infinite;
+      animation-timing-function: linear;
+      backface-visibility: hidden;
+      perspective: 1000;
     }
   }  
   
@@ -113,25 +162,26 @@ section#login-section {
   button {
     background-color: transparent;
     border: none;
-    color: @primary7;
+    color: @secondary5;
     margin: 0;
     padding: 0;
     
     &:focus {
       outline: none;
       svg {
-        fill: @accent7;
+        fill: @secondary9;
       }
     }
     
     svg {
+      fill: @secondary7;
       width: 20px;
       height: 20px;
     }
   }
   
   .widget-header {
-    color: @primary7;
+    color: @accent7;
     
     /* New Widget pickers have this class */
     h3.new {
@@ -142,7 +192,7 @@ section#login-section {
     
     a {
       text-decoration: none;
-      color: @primary7;
+      color: @accent7;
       
       svg {
         fill: @accent7;
@@ -162,7 +212,7 @@ section#login-section {
 
 .widget-edit-panel .widget-edit-section {
   label {
-    color: @accent7;
+    color: @secondary7;
     
     &.darker {
       color: @text_darker;
@@ -172,14 +222,19 @@ section#login-section {
   input {
     color: @text_darkest;
   }
-
-  button:focus {
-    svg {
-      fill: @accent7;
-    }
-  }
 }
 
 .widgetbox-placeholder {
-  background: lighten(@primary1, 20%);
+  background: fadeout(@secondary1, 20%);
+  border-radius: 3px;
+}
+
+.instructions {
+  color: @text_darker;
+  font-size: 0.8em;
+}
+
+.widget-failure {
+  font-size: 0.9em;
+  padding: 3px 5px;
 }
