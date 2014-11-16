@@ -101,6 +101,8 @@
       }
 
       this.$scope.columns = this.columns = columns;
+      this.$scope.widgetCount = columns.map(function(c){ return c.length; }).reduce(function(a, b){ return a + b; });
+
       // Check if the digest loop is in progress
       this.$scope.$$phase || this.$scope.$apply();
     },
@@ -142,8 +144,10 @@
         if(col.length < columns[low].length){
           low = index;
         }
-      });      
+      });
+      
       this.columns[low].push(widget);
+      this.$scope.widgetCount += 1;
       return low;
     },
 
@@ -152,7 +156,9 @@
       for(c = 0; c < this.columns.length; c++){
         for(i = 0; i < this.columns[c].length; i++){
           if(widget === this.columns[c][i]){
-            return this.columns[c].splice(i, 1)[0];
+            this.columns[c].splice(i, 1)[0];
+            this.$scope.widgetCount -= 1;
+            return;
           }
         }
       }
@@ -184,8 +190,6 @@
       });
     }
   }
-
-
 
   /**
    * The one and only module that handles the basic stuff.
@@ -306,8 +310,9 @@
     }, 250));
     model.setWindowSize($window.innerWidth);
 
-    $scope.columns = model.columns;
-    $scope.modules = MODULES;
+    $scope.columns     = model.columns;
+    $scope.modules     = MODULES;
+    $scope.widgetCount = model.columns.map(function(c){ return c.length; }).reduce(function(a, b){ return a + b; });
 
     // The angular-widgetbox directive calls this method when a widget is moved
     $scope.widgetboxOnWidgetMove = function(sourceColumn, sourcePosition, targetColumn, targetPosition){
@@ -458,8 +463,26 @@
     **/
     $scope.doForgotten = function(){
       if(!$scope.session.email){
-        return $scope.session.error = $sce.trustAsHtml("Enter an email and we'll send you <br>a reset password link.");
+        return $scope.session.error = $sce.trustAsHtml("Enter an email and we'll send you a link to <br>reset your password");
       }
+      
+      $scope.session.error = "";
+
+      $http({ 
+        url: "/forgotten", 
+        method: "POST",
+        headers: {'Content-Type': 'application/json'},
+        data: JSON.stringify({ email: $scope.session.email })
+      })
+      .success(function(data, status, headers, config){
+        $scope.session.message = data.message;
+        $timeout(function(){
+          $scope.session.message = "";
+        }, 2000);
+      })
+      .error(function(data, status, headers, config){ 
+        $scope.session.error = data.message;
+      });
     }
     
     function loginOrRegister(url){
@@ -489,9 +512,11 @@
     }
   });
   
-
-  // Helper functions  
-  function debounce(fn, delay) {
+  
+  /**
+   * Global functions used everywhere.
+  **/
+  window.debounce = function debounce(fn, delay) {
     var timer = null;
     return function () {
       var context = this, args = arguments;

@@ -54,7 +54,6 @@ section#header-section h1 {
   padding: 0;
   text-align: center;
   font-size: 50px;
-  font-family: Lobster;
 }
 section#header-section nav.main {
   position: absolute;
@@ -115,10 +114,24 @@ section#login-section input:not([type="checkbox"]) {
   width: 300px;
 }
 main {
+  position: relative;
   display: table;
   min-height: 100%;
   width: 100%;
   margin-top: 75px;
+}
+main #greeting {
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  margin-left: 50%;
+  left: -50%;
+}
+main #greeting div {
+  text-align: left;
+  margin: 10px auto;
+  width: 25%;
+  margin-top: 50px;
 }
 main section {
   padding-bottom: 200px !important;

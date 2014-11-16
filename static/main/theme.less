@@ -81,25 +81,12 @@ button {
 }
 
 section#header-section {
-  background-color: rgba(255, 255, 255, 1);
+  background-color: rgba(255, 255, 255, 0.9);
   overflow: hidden;
   h1 {
-    color: @primary7;
+    font-family: lobster;
+    color: @secondary7;
   }
-}
-
-section#header-section::before {
-  background: url('./bg.jpg') no-repeat center top;
-  background-size: 100% auto;
-  filter: blur(5px);
-  -webkit-filter: blur(5px);
-  
-  content: ' ';
-  opacity: 0.4;
-  
-  display: block;
-  width: 100%;
-  height: 100%;
 }
 
 section#login-section {
@@ -117,6 +104,34 @@ section#login-section {
   div.form-errors {
     margin-top: 5px;
     color: @primary5;
+  }
+  
+  div.form-message {
+    margin-top: 5px;
+    color: @secondary5;
+  }
+}
+
+#greeting {
+  div {
+    box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 20px 20px;
+    
+    h1 { 
+      color: @secondary7; 
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    h2 { 
+      color: @secondary5; 
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    p { 
+      color: @text_darkest; 
+      margin-top: 5px 0;
+    }
   }
 }
 

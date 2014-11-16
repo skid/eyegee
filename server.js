@@ -3,18 +3,48 @@
 process.env.DEBUG     = '';
 Error.stackTraceLimit = Infinity;
 
-// SETTINGS
-SESSION_MAX_AGE = 1000 * 60 * 60 * 24;
-CACHE_TTL       = 1000 * 60 * 10;
+var sstatic = require('serve-static');
+var favicon = require('serve-favicon');
+var cookiep = require('cookie-parser');
+var cookies = require('cookie-session');
+var bodyp   = require('body-parser');
 
+var email   = require('emailjs');
 var request = require('request');
 var connect = require('connect');
-var utils   = require('./utils');
 var redis   = require('redis');
 var fs      = require('fs');
 var qs      = require('qs');
 var _       = require('underscore');
 
+var utils   = require('./utils');
+
+/** 
+ * Load settings file.
+ * Example:
+    {
+      "hostname":       "http://eyegee.discobot.net",
+      "sess_max_age":   84600,
+      "cache_ttl":      600,
+      "forgotten_ttl":  600,
+      "email_port":     587,
+      "email_user":     "webmaster@discobot.net",
+      "email_password": "123123", 
+      "email_host":     "mail.discobot.net", 
+      "email_domain":   "discobot.net",
+      "email_ssl":      false,
+      "email_tls":      true
+    }
+**/
+var settings = JSON.parse(fs.readFileSync('settings.json'));
+
+// SETTINGS
+HOSTNAME        = settings.hostname;
+SESSION_MAX_AGE = settings.sess_max_age * 1000;
+CACHE_TTL       = settings.cache_ttl * 1000;
+FORGOTTEN_TTL   = settings.forgotten_ttl * 1000;
+
+// Global database connection
 function redis_connect(){
   global.db      = redis.createClient();
   global.db.on('error', function(err){
@@ -24,31 +54,44 @@ function redis_connect(){
 }
 redis_connect();
 
+// Emailjs server
+// create reusable transporter object using SMTP transport
+var mailer = email.server.connect({
+   user:     settings.email_user,
+   password: settings.email_password,
+   host:     settings.email_host,
+   domain:   settings.email_domain,
+   port:     settings.email_port,
+   ssl:      settings.email_ssl,
+   tls:      settings.email_tls
+});
+
+
 // The rss and comic modules are simple so we have only dummy apps
 // Other, more complicated modules might have their own .js file or even a node module.
 global.modules = {
   rss: { name: "rss" }, 
-  comic: { name: "comic" }
+  comic: { name: "comic" },
+  notes: { name: "notes" }
 }
 
 // This is the main Connect app for handling boilerplate
 var app = connect();
 
 // Serve static before the cookie/form parsers
-app.use('/static', connect.static(__dirname + "/static", { 
+app.use('/static', sstatic(__dirname + "/static", {
   maxAge: 365 * 24 * 60 * 60 * 1000
-}));
+}))
+
+app.use('/bower_components', sstatic(__dirname + "/bower_components", {
+  maxAge: 365 * 24 * 60 * 60 * 1000
+}))
 
 // Static 404 Sentinel
 app.use('/static', function(req, res, next){
   res.writeHead(400, "Not Found");
-  res.end("Not Found");
+  res.end();
 });
-
-// Serve static before the cookie/form parsers
-app.use('/bower_components', connect.static(__dirname + "/bower_components", { 
-  maxAge: 365 * 24 * 60 * 60 * 1000
-}));
 
 // Static 404 Sentinel
 app.use('/bower_components', function(req, res, next){
@@ -56,11 +99,9 @@ app.use('/bower_components', function(req, res, next){
   res.end("Not Found");
 });
 
-
-app.use('/', connect.cookieParser());
-app.use('/', connect.json({ limit: '100kb' }));
-app.use('/', connect.urlencoded({ limit: '100kb' }));
-app.use('/', connect.cookieSession({ secret: "kirintormageslikesecrets", cookie: { maxAge: SESSION_MAX_AGE } }));
+app.use('/', cookiep());
+app.use('/', bodyp.json({ limit: '100kb' }));
+app.use('/', cookies({ secret: "kirintormageslikesecrets", cookie: { maxAge: SESSION_MAX_AGE } }));
 
 
 // This runs for each request.
@@ -101,13 +142,11 @@ app.use('/', function(req, res, next){
 });
 
 
-
 // This layer will respond to requests to /signout
 // Signs out the user by deleting the session.
 app.use("/signout", function(req, res, next){
   req.user = { widgets: [] };
   db.del("sess:" + req.session.uid, function(){
-    res.body = "";
     res.writeHead(302, "Found", {location: "/"})
     res.end();
   });
@@ -136,6 +175,39 @@ app.use('/signin', function(req, res, next){
   });
 });
 
+// This layer will respond to requests to /signin
+// It will try to fetch a user from the database and compare its password against the supplied one.
+app.use('/forgotten_signin', function(req, res, next){
+  var parsed = qs.parse(req._parsedUrl.query);
+  
+  db.get('forgotten:' + parsed.token, function(err, result){
+    if(err){ return next(err); }
+
+    db.get(result, function(err, user){
+      if(err){ return next(err); }
+
+      user = user && JSON.parse(user);
+
+      if(!user) {
+        // Token expired. Just redirect.
+        // TODO: inform the user that the token expired.
+        res.writeHead(302, "Found", { location: "/" });
+        return res.end();
+      }
+      else {
+        req.user = user;
+        // Save session
+        db.set('sess:' + req.session.uid, 'user:' + req.user.email);
+        
+        res.writeHead(302, "Found", { location: "/" })
+        res.end();
+      }
+
+      // Delete the token
+      db.del('forgotten:' + parsed.token);
+    });
+  });
+});
 
 
 // This layer will respond to requests to /register and will 
@@ -156,7 +228,6 @@ app.use("/register", function(req, res, next){
     
     // If that email exists and it's not the currently logged user's email
     // disallow changes.
-    console.log(user, req.user.email)
     if(user && user.email !== req.user.email){
       res.body = { status: "error", statusCode: "401", message: "That account is already taken" };
       next();
@@ -182,7 +253,48 @@ app.use("/register", function(req, res, next){
   });
 });
 
+// Will send email with a link to reset password
+app.use('/forgotten', function(req, res, next){
 
+  // Check if user with that email exists
+  db.get('user:' + req.body.email, function(err, user){
+    if(err){ return next(err); }
+    
+    try {
+      user = JSON.parse(user);
+    }
+    catch(e){
+      user = null;
+    }
+    
+    if(!user){
+      // We don't tell the user that his email wasn't found
+      res.body = { status: "ok", message: "Email sent. Check your inbox." };
+      return next();
+    }
+
+    // Generate a unique ID
+    var uniq = utils.guid();
+    var link = HOSTNAME + "/forgotten_signin?token=" + uniq;
+
+    // Save the forgotten password link and link it to the user account
+    db.set('forgotten:' + uniq, 'user:' + req.body.email);
+    db.pexpire("forgotten:" + uniq, FORGOTTEN_TTL);
+
+    mailer.send({
+      subject: "Forgot your password?",
+      text:    "Follow this link and you will be logged in: " + link,
+      from:    "webmaster@discobot.net", 
+      to:      user.email,
+      html:    "<!doctype html><html><head></head><body><a href='" + link + "'>Click on this link and you will be logged in.</a></body></html>"
+    }, function(err, message){
+      if(err) { return next(err); }
+
+      res.body = { status: "ok", message: "Email sent. Check your inbox." };
+      next();
+    });
+  });
+});
 
 // This layer will respond to requests made to /remove_widget and will
 // remove a widget with the specific id from the user configuration
@@ -265,7 +377,7 @@ app.use('/proxy', function(req, res, next){
   }
 
   // TODO: Better sanitization
-  if(source.substr(0, 7) != "http://" && source.substr(0, 8) != "https://"){
+  if(source.substr(0, 7) !== "http://" && source.substr(0, 8) !== "https://"){
     source = "http://" + source;
   }
 

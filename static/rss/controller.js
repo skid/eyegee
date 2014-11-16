@@ -355,7 +355,6 @@
       if($scope.sources.indexOf(source) > -1){
         return;
       }
-
       // Set the working flag
       widget.$working += 1;
 
@@ -367,7 +366,7 @@
 
       // Mark the source as being checked
       $scope.sourceInfo[source] = "checking";
-      
+
       $http({ 
         url: '/proxy', 
         method: 'POST', 
@@ -397,9 +396,9 @@
           for(var i = 0; i < links.length; ++i){
             link = document.createElement('a');
             link.href = links[i];
-            
+
             // Fix relative links
-            if(link.hostname !== mainSource.hostname){
+            if(link.hostname === window.location.hostname){
               link.hostname = mainSource.hostname;
               link.port = 80;
             }

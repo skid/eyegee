@@ -3,16 +3,12 @@
 ### Server
 
 - Log everything.
-- Catch all errors, log them and resume work (don't crash)
-- Upgrade node, connect, redis, etc ...
+- Use pm2 to manage the process.
+- TEST IT ON BROWSERS
 
 ### Main
 
-- Make an instructions widget if there are no widgets to show
-- Forot password - make it work.
 - Add a contact/about page
-- Make a Notes widget.
-- TEST IT ON BROWSERS
 
 ### Comic
 

@@ -84,8 +84,12 @@
           </div>
         </div>
 
-        <div class="form-errors">
-          <p ng-bind-html="session.error" ng-show="session.error"></p>
+        <div class="form-errors" ng-show="session.error">
+          <p ng-bind-html="session.error"></p>
+        </div>
+
+        <div class="form-message" ng-show="session.message">
+          <p ng-bind-html="session.message"></p>
         </div>
       </section>
       
@@ -94,8 +98,43 @@
     <!-- The column arrangement of widgets is created in a separate angular directive -->
     <main ng-controller="MainController">
 
-      <section ng-repeat="column in columns" class="column wb-column col-{{ columns.length }}" widgetbox-column='wb-column' widgetbox-column-id="{{ $index }}">
-        
+      <div id="greeting" ng-show="!widgetCount">
+        <div>
+          <p>Hello!</p>
+          <p>&nbsp;</p>
+          <p>
+            This is EyeGee. It's called like that because it doing the same thing that 
+            <a href="http://en.wikipedia.org/wiki/IGoogle">iGoogle</a> used to do so well and 
+            other personalized homepages around the internet don't - be simple and don't show ads.
+          </p>
+          <p>&nbsp;</p>
+          <p>
+            Click the top-left button to add widgets.
+            Drag them around to arrange your space - it's pretty straightforward. 
+            Check out the <a href="/about">about</a> page for more info.
+          </p>
+          <p>&nbsp;</p>
+          <p>
+            I made EyeGee for myself. That's why it has only three widgets -<br>- the ones I need. 
+            But you can make your own because EyeGee is open source.
+            Head over to the <a href="https://github.com/skid/eyegee">project page</a> and see how.
+            Install it on your server. Or just use this one.
+          </p>
+          <p>&nbsp;</p>
+          <p>
+            If you decide to use this one, though, I can't guarantee backups and safety of your data. If something breaks,
+            the worst thing that could happen is that you lose your notes and widget layout. 
+            This might be pretty bad, depending on what you decide to keep here, so, 
+            <b>by all means, do not use it for important stuff ... yet!!!</b>
+          </p>
+          <p>&nbsp;</p>
+          <p>
+            Cheers.
+          </p>
+        </div>
+      </div>
+
+      <section ng-repeat="column in columns" class="column wb-column col-{{ columns.length }}" widgetbox-column='wb-column' widgetbox-column-id="{{ $index }}">  
         <!-- start of widget -->
         <div ng-repeat="widget in column" 
              ng-class="{'widget-container': 1, 'wb-widget': 1, empty: !widget.$loaded}"
@@ -129,8 +168,8 @@
           <widget-body ng-show="widget.module" module="{{ widget.module }}" widget-id="{{ widget.id }}"></widget-body>
         </div>
         <!-- end of widget -->
-
       </section>
+
     </main>
     <footer></footer>
   </body>

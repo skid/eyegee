@@ -1,0 +1,37 @@
+<div ng-controller="NotesController">
+  
+  <!-- Shown when the widget has the "isEdited" flag set to true -->
+  <div class="widget-edit-panel" ng-show="isEdited">
+    
+    <div class="widget-edit-section">
+      <label>Widget Title</label>
+      <input ng-model="title" class="notes-widget-title" type="text" >
+    </div>
+
+    <div class="widget-edit-section">
+      <label>Vertical Size (lines)</label>
+      <label class="inline darker"><input type="radio" ng-model="lineCount" value="5" checked>5</label>
+      <label class="inline darker"><input type="radio" ng-model="lineCount" value="10">10</label>
+      <label class="inline darker"><input type="radio" ng-model="lineCount" value="15">15</label>
+      <label class="inline darker"><input type="radio" ng-model="lineCount" value="20">20</label>
+      <label class="inline darker"><input type="radio" ng-model="lineCount" value="25">25</label>
+      <label class="inline darker"><input type="radio" ng-model="lineCount" value="30">30</label>
+    </div>
+
+    <div class="widget-bottom-controls">
+      <!-- Show the cancel button only for existing widgets -->
+      <button ng-click="widget.remove()" ng-show="!widget.isNew">
+        <svg viewBox="0 0 96 96"><use xlink:href="/static/main/icons.svg#delete"></use></svg>
+      </button>
+      <button ng-click="saveSettings()">
+        <svg viewBox="0 0 96 96"><use xlink:href="/static/main/icons.svg#check"></use></svg>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Shown when the widget has the "isEdited" flag set to false -->
+  <div ng-show="!isEdited" class="notes-widget">
+    <textarea class="notes-textarea" ng-model="notes" rows="{{lineCount}}" placeholder="Your notes here"></textarea>
+  </div>
+</div>
