@@ -45,13 +45,13 @@
           
           <div class="form-row form-fields">
             <label for="input-email">Email</label>
-            <input ng-model="session.email" id="input-email"> 
+            <input ng-model="session.email" id="input-email" ui-keypress="{13:'doSignIn()'}">
             <label for="input-password">Password</label>
-            <input ng-model="session.password" type="password" id="input-password">
+            <input ng-model="session.password" type="password" id="input-password" ui-keypress="{13:'doSignIn()'}">
           </div>
           <div class="form-row form-fields">
             <button ng-click="doSignIn()">Login</button>
-            <button ng-click="doForgotten()">Forgot Password?</button>
+            <button ng-click="doForgotten()">Lost password?</button>
           </div>
           <div class="form-row form-fields">
             <label for="input-password2">Repeat Password</label>
@@ -61,7 +61,7 @@
             <button ng-click="doRegister()">Register</button>
           </div>
         </div>
-        
+
         <div ng-show="!session.isAnon">
           <p class="greeting">You are logged in as {{email}}</p>
           <p class="instructions">

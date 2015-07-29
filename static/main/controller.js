@@ -492,7 +492,7 @@
         url: url, 
         method: "POST",
         headers: {'Content-Type': 'application/json'},
-        data: JSON.stringify({ email: $scope.session.email, password: $scope.session.password })
+        data: JSON.stringify({ email: $scope.session.email, password: $scope.session.password, remember: $scope.session.remember })
       })
       .success(function(data, status, headers, config){
         window.USER = data.user;

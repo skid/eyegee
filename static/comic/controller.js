@@ -4,8 +4,8 @@
    * for each comic strip website.
   **/
   var xkcd_re = /\<div\s+id=\"comic\"\>\s+\<img\s+src=\"([^"]+)\"/;
-  var dilbert_re = /\<img\s+src="([^"]+)"\s+title="The\s+Dilbert\s+Strip\s+for\s+[^"]+"\s+\/\>/;
   var cyanide_re = /\<img\s+alt\=\"Cyanide\s+and\s+Happiness\,\s+a\s+daily\s+webcomic\"\s+src=\"([^"]+)\"\s+border\=0\>/;
+  var dilbert_re = /src=\"([^"]+)\"/i;
 
   var parserFunctions = [
     function xkcd(html){
@@ -13,8 +13,12 @@
       return match && match[1];
     },
     function dilbert(html){
+      html = html.substr(html.indexOf('<div class="img-comic-container">'));
+      html = html.substr(0, html.indexOf('</a>'));
+      console.log(html)
+      console.log(dilbert_re.exec(html))
       var match = html.match(dilbert_re);
-      return match && "http://www.dilbert.com/" + match[1];
+      return match && match[1];
     },
     function cyanide(html){
       var match = html.match(cyanide_re);
