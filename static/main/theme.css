@@ -15,6 +15,7 @@ body {
   background-repeat: no-repeat;
   background-size: 100% auto;
   background-color: #B38538;
+  background-attachment: fixed;
 }
 input:not([type='checkbox']):not([type='radio']),
 textarea {
