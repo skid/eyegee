@@ -9,6 +9,7 @@
 ### Main
 
 - Add a contact/about page
+- Make email optional
 
 ### Comic
 
