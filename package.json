@@ -1,7 +1,7 @@
 {
   "name": "EyeGee",
   "version": "0.2.0",
-  "description": "A cleaner alternative to iGoogle",
+  "description": "A quite simple clone of iGoogle",
   "main": "server.js",
   "dependencies": {
     "async": "^0.2.9",
@@ -37,5 +37,5 @@
     "igoogle"
   ],
   "author": "Dusko Jordanovski",
-  "license": "ISC"
+  "license": "MIT"
 }

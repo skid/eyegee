@@ -5,9 +5,9 @@ As much as possible and as much as I have time to work on it.
 
 ## About
 
-I developed EyeGee to suit my personal longing for an ad-free as-simple-as-possible personalized homepage. I used to have a bunch of RSS feeds, a dilbert comic and xkcd on iGoogle and that worked fine for me ... but, you know, leave it to Google/Apple/Facebook to change/cancel/screw up the stuff you like (to be fair, they also make the stuff you like).
+I developed EyeGee to suit my personal longing for an ad-free as-simple-as-possible personalized homepage. I used to have a bunch of RSS feeds, a dilbert comic and xkcd on iGoogle and that worked fine for me ... but, you know, leave it to Google/Apple/Facebook to create and then screw up the stuff you like.
 
-So, if you are interested, by all means use EyeGee. Help improve it, make some widgets, find bugs.
+So, if you are interested, by all means use EyeGee. Help improve it, make some widgets, find bugs. I don't have much time to work on the project, and, to be honest it's quite useful for me as it is - but I will try to provide any help.
 
 ## Running EyeGee
 
@@ -22,7 +22,7 @@ Go to the cloned directoy and install dependencies:
     cd eyegee
     npm install
 
-Also, you will need to install bower, if you don't have it because it's used to manage the frontend libraries.
+Also, you will need to install bower because it's used to manage the frontend libraries.
 
 		npm install -g bower
 
@@ -58,7 +58,7 @@ And finally visit [http://127.0.0.1:3001](http://127.0.0.1:3001).
 
 Eyegee has very simple backend code. It's 500 lines long and it's in the `server.js` file. Basically, it's used for 3 things: serving static content, database I/O and as a proxy for pulling resources from the web. Everything else is done on the frontend.
 
-Eyegee is organized in widget apps which are placed in `/static`. So far, there are 4 of them - *comic*, *notes* and *rss* are widgets and *main* is the main application that bootstraps everything and loads the other widgets if needed.
+Eyegee is organized in widget apps which are placed in `/static`. So far, there are 3 of them - *comic*, *notes* and *rss* are widgets and *main* is the main application that bootstraps everything and loads the other widgets if needed.
 
 Eyegee is made with [Angular.js](https://angularjs.org/). It's my first angular project ever, so you'll have to excuse any terrible code you may find.
 
