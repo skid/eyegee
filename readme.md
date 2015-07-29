@@ -3,6 +3,8 @@
 This is a small stand-alone node.js application that will replace iGoogle.
 As much as possible and as much as I have time to work on it.
 
+DEMO: [http://eyegee.discobot.net](http://eyegee.discobot.net)
+
 ## About
 
 I developed EyeGee to suit my personal longing for an ad-free as-simple-as-possible personalized homepage. I used to have a bunch of RSS feeds, a dilbert comic and xkcd on iGoogle and that worked fine for me ... but, you know, leave it to Google/Apple/Facebook to create and then screw up the stuff you like.
