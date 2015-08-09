@@ -15,8 +15,6 @@
     function dilbert(html){
       html = html.substr(html.indexOf('<div class="img-comic-container">'));
       html = html.substr(0, html.indexOf('</a>'));
-      console.log(html)
-      console.log(dilbert_re.exec(html))
       var match = html.match(dilbert_re);
       return match && match[1];
     },
