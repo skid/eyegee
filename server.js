@@ -40,7 +40,7 @@ var settings = JSON.parse(fs.readFileSync('settings.json'));
 
 // SETTINGS
 HOSTNAME        = settings.hostname;
-SESSION_MAX_AGE = settings.sess_max_age * 1000;
+SESSION_MAX_AGE = settings.sess_max_age * 1000 * 14;
 CACHE_TTL       = settings.cache_ttl * 1000;
 FORGOTTEN_TTL   = settings.forgotten_ttl * 1000;
 
@@ -454,7 +454,7 @@ app.use('/', function(req, res, next){
   // Touch the session.
   // We want a new cookie on each request so that the user session is remembered
   // unless he doesn't visit the site for "maxAge" time.
-  req.session.expires = new Date + SESSION_MAX_AGE;
+  req.sessionOptions.expires = new Date(+(new Date) + SESSION_MAX_AGE);
   // We also need to touch the sess: key to extend it's expiry date.
   db.pexpire('sess:' + req.session.uid, SESSION_MAX_AGE);  
   next();  
