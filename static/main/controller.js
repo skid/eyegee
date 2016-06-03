@@ -109,9 +109,9 @@
 
     setPositionPreferences: function(){
       var i, j, column;
-      for(i=0; i<this.columns.length; ++i){
+      for(i=0; i < this.columns.length; ++i){
         column = this.columns[i];
-        for(j=0; j<column.length; ++j){
+        for(j=0; j < column.length; ++j){
           column[j][ this._columnCount ] = { col: i, pos: j };
         }
       }
