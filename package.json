@@ -11,7 +11,7 @@
     "cookie-session": "^1.1.0",
     "emailjs": "^0.3.12",
     "redis": "^0.12.1",
-    "qs": "^2.3.2",
+    "qs": "^6.9.4",
     "request": "^2.47.0",
     "serve-favicon": "^2.1.6",
     "underscore": "^1.7.0",
